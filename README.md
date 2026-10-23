@@ -158,4 +158,4 @@ Gli errori restituiscono `{ "error": "messaggio", "fields": { "campo": "messaggi
 ---
 
 Progetto sviluppato con l'assistenza di [Claude Code](https://claude.com/claude-code).
-Come è stato costruito, passo per passo: [Guida al progetto](docs/GUIDA-PROGETTO.md).
+Come è stato costruito, passo per passo: [Guida al progetto](docs/GUIDA-PROGETTO.md) · [Lavorare con più sessioni di Claude Code](docs/SESSIONI-PARALLELE.md).

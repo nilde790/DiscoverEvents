@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '../../shared/demo';
-import { fieldErrors, loginSchema } from '../../shared/validation';
-import { ApiError } from '../api';
-import { Field } from '../components/Field';
-import { useApp } from '../context/AppContext';
-import { returnPath } from '../utils/navigation';
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '@discoverevent/shared/demo';
+import { fieldErrors, loginSchema } from '@discoverevent/shared/validation';
+import { ApiError } from '@/lib/api';
+import { Field } from '@/components/ui/Field';
+import { useApp } from '@/features/events/EventsContext';
+import { returnPath } from '@/lib/navigation';
 
 export function LoginPage() {
   const { login, currentUser } = useApp();

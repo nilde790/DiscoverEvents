@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import type { EventSummary } from '../../shared/types';
-import { FALLBACK_CENTER, MAX_RADIUS_KM } from '../constants';
-import { distanceKm, type LatLng } from '../utils/geo';
+import type { EventSummary } from '@discoverevent/shared/types';
+import { FALLBACK_CENTER, MAX_RADIUS_KM } from '@/lib/constants';
+import { distanceKm, type LatLng } from '@/lib/geo';
 import { useGeolocation } from './useGeolocation';
 
 export type EventWithDistance = EventSummary & { distanceKm: number };

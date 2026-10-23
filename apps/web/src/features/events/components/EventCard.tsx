@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import type { EventSummary } from '../../shared/types';
-import { formatDate, formatDistance, formatPrice } from '../utils/format';
-import { Capacity, CategoryBadge, EventActions, StatusBadge } from './EventBits';
+import type { EventSummary } from '@discoverevent/shared/types';
+import { formatDate, formatDistance, formatPrice } from '@/lib/format';
+import { Capacity, CategoryBadge, EventActions, StatusBadge } from './EventBadges';
 
 interface Props {
   event: EventSummary;

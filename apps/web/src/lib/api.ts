@@ -1,5 +1,5 @@
-import type { EventDetail, EventInput, EventSummary, OrganizerRequest, User } from '../shared/types';
-import type { LoginInput, RegisterInput } from '../shared/validation';
+import type { EventDetail, EventInput, EventSummary, OrganizerRequest, User } from '@discoverevent/shared/types';
+import type { LoginInput, RegisterInput } from '@discoverevent/shared/validation';
 
 export class ApiError extends Error {
   constructor(

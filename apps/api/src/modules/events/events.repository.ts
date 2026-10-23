@@ -9,7 +9,7 @@ import type {
   RequestStatus,
   Role,
   User,
-} from '../shared/types';
+} from '@discoverevent/shared/types';
 
 interface RequestRow {
   id: number;

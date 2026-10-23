@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 import session from 'express-session';
 import type { DatabaseSync } from 'node:sqlite';
 import type { ZodType, ZodTypeDef } from 'zod';
-import { registrationStatus, type Role, type User } from '../shared/types';
+import { registrationStatus, type Role, type User } from '@discoverevent/shared/types';
 import {
   decisionSchema,
   eventInputSchema,
@@ -12,10 +12,10 @@ import {
   loginSchema,
   organizerRequestSchema,
   registerSchema,
-} from '../shared/validation';
-import { transaction } from './db';
-import { createRepository } from './repository';
-import { SqliteSessionStore } from './sessionStore';
+} from '@discoverevent/shared/validation';
+import { transaction } from './db/database';
+import { createRepository } from './modules/events/events.repository';
+import { SqliteSessionStore } from './db/session-store';
 
 declare module 'express-session' {
   interface SessionData {

@@ -1,5 +1,5 @@
 import { createApp } from './app';
-import { openDatabase } from './db';
+import { openDatabase } from './db/database';
 
 // Legge il file .env, se c'è (funzione integrata in Node.js). In produzione le variabili le imposta l'hosting.
 try {

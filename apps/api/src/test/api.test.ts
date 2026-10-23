@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { after, before, describe, test } from 'node:test';
-import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '../shared/demo';
-import type { EventInput } from '../shared/types';
-import { createApp, type AppOptions } from './app';
-import { openDatabase } from './db';
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '@discoverevent/shared/demo';
+import type { EventInput } from '@discoverevent/shared/types';
+import { createApp, type AppOptions } from '../app';
+import { openDatabase } from '../db/database';
 
 // Ogni server di test usa un database in memoria con i dati demo: i test non toccano quello vero.
 const servers: Server[] = [];

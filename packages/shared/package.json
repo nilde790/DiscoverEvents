@@ -1,0 +1,18 @@
+{
+  "name": "@discoverevent/shared",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Tipi, regole di validazione e costanti usati sia dal frontend sia dal backend.",
+  "exports": {
+    "./types": "./src/types.ts",
+    "./validation": "./src/validation.ts",
+    "./demo": "./src/demo.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "3.23.8"
+  }
+}

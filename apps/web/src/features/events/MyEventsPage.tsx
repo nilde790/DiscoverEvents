@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import { registrationStatus, type EventSummary } from '../../shared/types';
-import { EventCard } from '../components/EventCard';
-import { useApp } from '../context/AppContext';
+import { registrationStatus, type EventSummary } from '@discoverevent/shared/types';
+import { EventCard } from '@/features/events/components/EventCard';
+import { useApp } from '@/features/events/EventsContext';
 
 function Section({ title, events, empty }: { title: string; events: EventSummary[]; empty: string }) {
   return (

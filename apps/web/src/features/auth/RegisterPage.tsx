@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { fieldErrors, registerSchema } from '../../shared/validation';
-import { ApiError } from '../api';
-import { Field } from '../components/Field';
-import { useApp } from '../context/AppContext';
-import { returnPath } from '../utils/navigation';
+import { fieldErrors, registerSchema } from '@discoverevent/shared/validation';
+import { ApiError } from '@/lib/api';
+import { Field } from '@/components/ui/Field';
+import { useApp } from '@/features/events/EventsContext';
+import { returnPath } from '@/lib/navigation';
 
 export function RegisterPage() {
   const { register, currentUser } = useApp();

@@ -1,18 +1,18 @@
 import type { ReactNode } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { Header } from './components/Header';
-import { RequireAuth } from './components/RequireAuth';
-import { useApp } from './context/AppContext';
-import { AdminPage } from './pages/AdminPage';
-import { CatalogPage } from './pages/CatalogPage';
-import { EventFormPage } from './pages/EventFormPage';
-import { EventPage } from './pages/EventPage';
-import { ExplorePage } from './pages/ExplorePage';
-import { LoginPage } from './pages/LoginPage';
-import { MyEventsPage } from './pages/MyEventsPage';
-import { OrganizerPage } from './pages/OrganizerPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { RegisterPage } from './pages/RegisterPage';
+import { Header } from '@/components/layout/Header';
+import { RequireAuth } from '@/features/auth/RequireAuth';
+import { useApp } from '@/features/events/EventsContext';
+import { AdminPage } from '@/features/admin/AdminPage';
+import { CatalogPage } from '@/features/events/CatalogPage';
+import { EventFormPage } from '@/features/organizer/EventFormPage';
+import { EventPage } from '@/features/events/EventPage';
+import { ExplorePage } from '@/features/events/ExplorePage';
+import { LoginPage } from '@/features/auth/LoginPage';
+import { MyEventsPage } from '@/features/events/MyEventsPage';
+import { OrganizerPage } from '@/features/organizer/OrganizerPage';
+import { ProfilePage } from '@/features/auth/ProfilePage';
+import { RegisterPage } from '@/features/auth/RegisterPage';
 
 const authed = (page: ReactNode) => <RequireAuth>{page}</RequireAuth>;
 

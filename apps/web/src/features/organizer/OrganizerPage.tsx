@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import { registrationStatus } from '../../shared/types';
-import { StatusBadge } from '../components/EventBits';
-import { useApp } from '../context/AppContext';
-import { formatDate } from '../utils/format';
+import { registrationStatus } from '@discoverevent/shared/types';
+import { StatusBadge } from '@/features/events/components/EventBadges';
+import { useApp } from '@/features/events/EventsContext';
+import { formatDate } from '@/lib/format';
 
 /** Area organizzatore: elenco dei propri eventi con stato iscrizioni e azioni di gestione. */
 export function OrganizerPage() {

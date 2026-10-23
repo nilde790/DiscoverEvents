@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { LatLng } from '../utils/geo';
+import type { LatLng } from '@/lib/geo';
 
 type GeoState =
   | { status: 'loading'; position: null; error: null }

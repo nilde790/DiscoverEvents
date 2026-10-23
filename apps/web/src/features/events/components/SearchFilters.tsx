@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { CATEGORIES } from '../../shared/types';
-import { CATEGORY_COLORS } from '../constants';
-import type { EventFiltersState } from '../hooks/useEventFilters';
+import { CATEGORIES } from '@discoverevent/shared/types';
+import { CATEGORY_COLORS } from '@/lib/constants';
+import type { EventFiltersState } from '@/features/events/hooks/useEventFilters';
 
 interface Props {
   filters: EventFiltersState;

@@ -1,6 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { ROLE_LABELS } from '../constants';
-import { useApp } from '../context/AppContext';
+import { ROLE_LABELS } from '@/lib/constants';
+import { useApp } from '@/features/events/EventsContext';
 
 export function Header() {
   const { currentUser, authReady, logout } = useApp();

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import type { EventDetail } from '../../shared/types';
-import { Capacity, CategoryBadge, EventActions, StatusBadge } from '../components/EventBits';
-import { LocationMap } from '../components/MapView';
-import { api } from '../api';
-import { useApp } from '../context/AppContext';
-import { endOf, formatDate, formatPrice, formatTime } from '../utils/format';
+import type { EventDetail } from '@discoverevent/shared/types';
+import { Capacity, CategoryBadge, EventActions, StatusBadge } from '@/features/events/components/EventBadges';
+import { LocationMap } from '@/features/events/components/MapView';
+import { api } from '@/lib/api';
+import { useApp } from '@/features/events/EventsContext';
+import { endOf, formatDate, formatPrice, formatTime } from '@/lib/format';
 
 /** Scheda completa di un evento: data, luogo, descrizione, organizzatore, iscrizioni. */
 export function EventPage() {

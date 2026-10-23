@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { seed } from './seed';
 
-const DEFAULT_DB_PATH = join(dirname(fileURLToPath(import.meta.url)), 'data', 'discoverevent.db');
+// apps/api/data/discoverevent.db, indipendente dalla cartella da cui si avvia il server.
+const DEFAULT_DB_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'data', 'discoverevent.db');
 
 /**
  * Versione dello schema, salvata nel database con PRAGMA user_version.

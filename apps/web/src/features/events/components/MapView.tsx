@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet';
-import type { EventSummary } from '../../shared/types';
-import { CATEGORY_COLORS } from '../constants';
-import type { LatLng } from '../utils/geo';
+import type { EventSummary } from '@discoverevent/shared/types';
+import { CATEGORY_COLORS } from '@/lib/constants';
+import type { LatLng } from '@/lib/geo';
 
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';

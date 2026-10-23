@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import type { OrganizerRequest } from '../../shared/types';
-import { api } from '../api';
-import { useApp } from '../context/AppContext';
-import { formatDate } from '../utils/format';
+import type { OrganizerRequest } from '@discoverevent/shared/types';
+import { api } from '@/lib/api';
+import { useApp } from '@/features/events/EventsContext';
+import { formatDate } from '@/lib/format';
 
 const STATUS = {
   pending: { label: 'In attesa', className: 'status-almost-full' },

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
-import { loginLink } from '../utils/navigation';
+import { useApp } from '@/features/events/EventsContext';
+import { loginLink } from '@/lib/navigation';
 
 /**
  * Protegge le pagine che richiedono l'accesso: chi non è autenticato va alla pagina di login

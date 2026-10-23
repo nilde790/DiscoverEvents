@@ -1,8 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { registrationStatus, type EventSummary } from '../../shared/types';
-import { loginLink } from '../utils/navigation';
-import { CATEGORY_COLORS, STATUS_LABELS } from '../constants';
-import { useApp } from '../context/AppContext';
+import { registrationStatus, type EventSummary } from '@discoverevent/shared/types';
+import { loginLink } from '@/lib/navigation';
+import { CATEGORY_COLORS, STATUS_LABELS } from '@/lib/constants';
+import { useApp } from '@/features/events/EventsContext';
 
 export function CategoryBadge({ event }: { event: EventSummary }) {
   return (

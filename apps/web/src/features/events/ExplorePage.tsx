@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { registrationStatus } from '../../shared/types';
-import { CategoryBadge, Capacity, EventActions, StatusBadge } from '../components/EventBits';
-import { MapView } from '../components/MapView';
-import { SearchFilters } from '../components/SearchFilters';
-import { CATEGORY_COLORS, MAX_RADIUS_KM } from '../constants';
-import { useApp } from '../context/AppContext';
-import { useEventFilters } from '../hooks/useEventFilters';
-import { useNearbyEvents } from '../hooks/useNearbyEvents';
-import { endOf, formatDate, formatDistance, formatPrice, formatTime } from '../utils/format';
+import { registrationStatus } from '@discoverevent/shared/types';
+import { CategoryBadge, Capacity, EventActions, StatusBadge } from '@/features/events/components/EventBadges';
+import { MapView } from '@/features/events/components/MapView';
+import { SearchFilters } from '@/features/events/components/SearchFilters';
+import { CATEGORY_COLORS, MAX_RADIUS_KM } from '@/lib/constants';
+import { useApp } from '@/features/events/EventsContext';
+import { useEventFilters } from '@/features/events/hooks/useEventFilters';
+import { useNearbyEvents } from '@/features/events/hooks/useNearbyEvents';
+import { endOf, formatDate, formatDistance, formatPrice, formatTime } from '@/lib/format';
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (

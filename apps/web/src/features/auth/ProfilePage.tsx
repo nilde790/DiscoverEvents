@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ROLE_LABELS } from '../constants';
-import { useApp } from '../context/AppContext';
-import { formatDate } from '../utils/format';
+import { ROLE_LABELS } from '@/lib/constants';
+import { useApp } from '@/features/events/EventsContext';
+import { formatDate } from '@/lib/format';
 
 const ROLE_DESCRIPTIONS = {
   participant: 'Puoi iscriverti agli eventi e salvarli tra i preferiti.',

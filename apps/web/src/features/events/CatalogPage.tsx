@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { registrationStatus } from '../../shared/types';
-import { EventCard } from '../components/EventCard';
-import { SearchFilters } from '../components/SearchFilters';
-import { useApp } from '../context/AppContext';
-import { useEventFilters } from '../hooks/useEventFilters';
-import { useNearbyEvents, type EventWithDistance } from '../hooks/useNearbyEvents';
+import { registrationStatus } from '@discoverevent/shared/types';
+import { EventCard } from '@/features/events/components/EventCard';
+import { SearchFilters } from '@/features/events/components/SearchFilters';
+import { useApp } from '@/features/events/EventsContext';
+import { useEventFilters } from '@/features/events/hooks/useEventFilters';
+import { useNearbyEvents, type EventWithDistance } from '@/features/events/hooks/useNearbyEvents';
 
 type SortKey = 'date' | 'distance' | 'popular';
 

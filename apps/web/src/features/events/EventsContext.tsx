@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { EventInput, EventSummary, OrganizerRequest, User } from '../../shared/types';
-import type { LoginInput, RegisterInput } from '../../shared/validation';
-import { api, type SessionInfo } from '../api';
+import type { EventInput, EventSummary, OrganizerRequest, User } from '@discoverevent/shared/types';
+import type { LoginInput, RegisterInput } from '@discoverevent/shared/validation';
+import { api, type SessionInfo } from '@/lib/api';
 
 interface Toast {
   id: number;

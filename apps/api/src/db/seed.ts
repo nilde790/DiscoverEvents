@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import type { DatabaseSync } from 'node:sqlite';
-import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '../shared/demo';
-import type { EventCategory } from '../shared/types';
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '@discoverevent/shared/demo';
+import type { EventCategory } from '@discoverevent/shared/types';
 
 /** Centro dei dati demo: Roma. */
 const CENTER = { lat: 41.9028, lng: 12.4964 };

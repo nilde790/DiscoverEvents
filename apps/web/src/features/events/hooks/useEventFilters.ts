@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CATEGORIES, type EventCategory, type EventSummary } from '../../shared/types';
+import { CATEGORIES, type EventCategory, type EventSummary } from '@discoverevent/shared/types';
 
 /** Ricerca testuale + categorie attive: stato comune a mappa e catalogo. */
 export function useEventFilters() {

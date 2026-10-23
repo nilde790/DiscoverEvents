@@ -1,13 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { CATEGORIES, type EventInput } from '../../shared/types';
-import { eventInputSchema, fieldErrors } from '../../shared/validation';
-import { api, ApiError } from '../api';
-import { Field } from '../components/Field';
-import { LocationMap } from '../components/MapView';
-import { FALLBACK_CENTER } from '../constants';
-import { useApp } from '../context/AppContext';
-import { fromLocalInput, toLocalInput } from '../utils/format';
+import { CATEGORIES, type EventInput } from '@discoverevent/shared/types';
+import { eventInputSchema, fieldErrors } from '@discoverevent/shared/validation';
+import { api, ApiError } from '@/lib/api';
+import { Field } from '@/components/ui/Field';
+import { LocationMap } from '@/features/events/components/MapView';
+import { FALLBACK_CENTER } from '@/lib/constants';
+import { useApp } from '@/features/events/EventsContext';
+import { fromLocalInput, toLocalInput } from '@/lib/format';
 
 /** Valori del form: i numeri restano stringhe finché l'utente scrive, si convertono all'invio. */
 interface FormValues {

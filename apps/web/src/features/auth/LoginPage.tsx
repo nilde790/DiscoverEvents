@@ -4,11 +4,11 @@ import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '@discoverevent/shared/demo';
 import { fieldErrors, loginSchema } from '@discoverevent/shared/validation';
 import { ApiError } from '@/lib/api';
 import { Field } from '@/components/ui/Field';
-import { useApp } from '@/features/events/EventsContext';
+import { useAuth } from '@/features/auth/AuthContext';
 import { returnPath } from '@/lib/navigation';
 
 export function LoginPage() {
-  const { login, currentUser } = useApp();
+  const { login, currentUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const goTo = returnPath(location.search);

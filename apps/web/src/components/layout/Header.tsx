@@ -1,9 +1,9 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { ROLE_LABELS } from '@/lib/constants';
-import { useApp } from '@/features/events/EventsContext';
+import { useAuth } from '@/features/auth/AuthContext';
 
 export function Header() {
-  const { currentUser, authReady, logout } = useApp();
+  const { currentUser, authReady, logout } = useAuth();
   const navigate = useNavigate();
 
   const onLogout = async () => {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { registrationStatus } from '@discoverevent/shared/types';
 import { EventCard } from '@/features/events/components/EventCard';
 import { SearchFilters } from '@/features/events/components/SearchFilters';
-import { useApp } from '@/features/events/EventsContext';
+import { useEvents } from '@/features/events/EventsContext';
 import { useEventFilters } from '@/features/events/hooks/useEventFilters';
 import { useNearbyEvents, type EventWithDistance } from '@/features/events/hooks/useNearbyEvents';
 
@@ -15,7 +15,7 @@ const SORTERS: Record<SortKey, (a: EventWithDistance, b: EventWithDistance) => n
 };
 
 export function CatalogPage() {
-  const { events, loading, error } = useApp();
+  const { events, loading, error } = useEvents();
   const nearby = useNearbyEvents(events);
   const filters = useEventFilters();
   const [sort, setSort] = useState<SortKey>('date');

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { registrationStatus } from '@discoverevent/shared/types';
-import { CategoryBadge, Capacity, EventActions, StatusBadge } from '@/features/events/components/EventBadges';
+import { Capacity } from '@/features/events/components/Capacity';
+import { EventActions } from '@/features/events/components/EventActions';
+import { CategoryBadge, StatusBadge } from '@/features/events/components/EventBadges';
 import { MapView } from '@/features/events/components/MapView';
 import { SearchFilters } from '@/features/events/components/SearchFilters';
 import { CATEGORY_COLORS, MAX_RADIUS_KM } from '@/lib/constants';
-import { useApp } from '@/features/events/EventsContext';
+import { useEvents } from '@/features/events/EventsContext';
 import { useEventFilters } from '@/features/events/hooks/useEventFilters';
 import { useNearbyEvents } from '@/features/events/hooks/useNearbyEvents';
 import { endOf, formatDate, formatDistance, formatPrice, formatTime } from '@/lib/format';
@@ -21,7 +23,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 /** Mappa della zona con dashboard laterale: la vista "vicino a me". */
 export function ExplorePage() {
-  const { events, loading } = useApp();
+  const { events, loading } = useEvents();
   const nearby = useNearbyEvents(events);
   const filters = useEventFilters();
   const [radiusKm, setRadiusKm] = useState(5);

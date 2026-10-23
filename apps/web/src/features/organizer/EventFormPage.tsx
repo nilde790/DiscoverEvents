@@ -6,7 +6,8 @@ import { api, ApiError } from '@/lib/api';
 import { Field } from '@/components/ui/Field';
 import { LocationMap } from '@/features/events/components/MapView';
 import { FALLBACK_CENTER } from '@/lib/constants';
-import { useApp } from '@/features/events/EventsContext';
+import { useAuth } from '@/features/auth/AuthContext';
+import { useEvents } from '@/features/events/EventsContext';
 import { fromLocalInput, toLocalInput } from '@/lib/format';
 
 /** Valori del form: i numeri restano stringhe finché l'utente scrive, si convertono all'invio. */
@@ -53,7 +54,8 @@ export function EventFormPage() {
   const { id } = useParams();
   const editingId = id ? Number(id) : undefined;
   const navigate = useNavigate();
-  const { currentUser, saveEvent } = useApp();
+  const { currentUser } = useAuth();
+  const { saveEvent } = useEvents();
 
   const [values, setValues] = useState<FormValues | null>(editingId ? null : emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});

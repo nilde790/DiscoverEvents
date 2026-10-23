@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { OrganizerRequest } from '@discoverevent/shared/types';
 import { api } from '@/lib/api';
-import { useApp } from '@/features/events/EventsContext';
+import { useAuth } from '@/features/auth/AuthContext';
+import { useToast } from '@/components/ui/Toast';
 import { formatDate } from '@/lib/format';
 
 const STATUS = {
@@ -12,7 +13,8 @@ const STATUS = {
 
 /** Area amministratore: richieste per diventare organizzatore da approvare o rifiutare. */
 export function AdminPage() {
-  const { currentUser, notify } = useApp();
+  const { currentUser } = useAuth();
+  const { notify } = useToast();
   const [onlyPending, setOnlyPending] = useState(true);
   const [requests, setRequests] = useState<OrganizerRequest[] | null>(null);
   const [error, setError] = useState<string | null>(null);

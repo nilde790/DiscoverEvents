@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
 import { registrationStatus } from '@discoverevent/shared/types';
 import { StatusBadge } from '@/features/events/components/EventBadges';
-import { useApp } from '@/features/events/EventsContext';
+import { useAuth } from '@/features/auth/AuthContext';
+import { useEvents } from '@/features/events/EventsContext';
 import { formatDate } from '@/lib/format';
 
 /** Area organizzatore: elenco dei propri eventi con stato iscrizioni e azioni di gestione. */
 export function OrganizerPage() {
-  const { events, currentUser, deleteEvent } = useApp();
+  const { currentUser } = useAuth();
+  const { events, deleteEvent } = useEvents();
 
   if (currentUser?.role !== 'organizer') {
     return (

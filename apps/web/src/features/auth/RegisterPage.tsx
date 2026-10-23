@@ -3,11 +3,11 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { fieldErrors, registerSchema } from '@discoverevent/shared/validation';
 import { ApiError } from '@/lib/api';
 import { Field } from '@/components/ui/Field';
-import { useApp } from '@/features/events/EventsContext';
+import { useAuth } from '@/features/auth/AuthContext';
 import { returnPath } from '@/lib/navigation';
 
 export function RegisterPage() {
-  const { register, currentUser } = useApp();
+  const { register, currentUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 

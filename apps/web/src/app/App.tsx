@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { RequireAuth } from '@/features/auth/RequireAuth';
-import { useApp } from '@/features/events/EventsContext';
 import { AdminPage } from '@/features/admin/AdminPage';
 import { CatalogPage } from '@/features/events/CatalogPage';
 import { EventFormPage } from '@/features/organizer/EventFormPage';
@@ -16,9 +15,8 @@ import { RegisterPage } from '@/features/auth/RegisterPage';
 
 const authed = (page: ReactNode) => <RequireAuth>{page}</RequireAuth>;
 
+/** Rotte dell'app: quali pagine sono pubbliche e quali richiedono l'accesso. */
 export default function App() {
-  const { toast } = useApp();
-
   return (
     <div className="app">
       <Header />
@@ -42,11 +40,6 @@ export default function App() {
           <Route path="*" element={<div className="page placeholder">Pagina non trovata.</div>} />
         </Routes>
       </main>
-      {toast && (
-        <div key={toast.id} className={`toast ${toast.kind}`} role="status">
-          {toast.text}
-        </div>
-      )}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { registrationStatus, type EventSummary } from '@discoverevent/shared/types';
 import { EventCard } from '@/features/events/components/EventCard';
-import { useApp } from '@/features/events/EventsContext';
+import { useAuth } from '@/features/auth/AuthContext';
+import { useEvents } from '@/features/events/EventsContext';
 
 function Section({ title, events, empty }: { title: string; events: EventSummary[]; empty: string }) {
   return (
@@ -24,7 +25,8 @@ function Section({ title, events, empty }: { title: string; events: EventSummary
 
 /** Iscrizioni e preferiti dell'utente corrente. */
 export function MyEventsPage() {
-  const { events, currentUser } = useApp();
+  const { currentUser } = useAuth();
+  const { events } = useEvents();
   const registered = events.filter((e) => e.isRegistered);
   const upcoming = registered.filter((e) => registrationStatus(e) !== 'closed');
   const past = registered.filter((e) => registrationStatus(e) === 'closed').reverse();

@@ -1,28 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { EventInput, EventSummary, OrganizerRequest, User } from '@discoverevent/shared/types';
-import type { LoginInput, RegisterInput } from '@discoverevent/shared/validation';
-import { api, type SessionInfo } from '@/lib/api';
+import type { EventInput, EventSummary } from '@discoverevent/shared/types';
+import { errorMessage, useToast } from '@/components/ui/Toast';
+import { useAuth } from '@/features/auth/AuthContext';
+import { api } from '@/lib/api';
 
-interface Toast {
-  id: number;
-  text: string;
-  kind: 'ok' | 'error';
-}
-
-interface AppState {
-  /** null = visitatore non autenticato. */
-  currentUser: User | null;
-  /** Ultima richiesta per diventare organizzatore dell'utente corrente, se esiste. */
-  organizerRequest: OrganizerRequest | null;
-  /** false finché non si sa se c'è una sessione attiva (evita di mostrare "Accedi" per un attimo). */
-  authReady: boolean;
-  login: (input: LoginInput) => Promise<void>;
-  register: (input: RegisterInput) => Promise<void>;
-  logout: () => Promise<void>;
-  requestOrganizer: (message: string) => Promise<void>;
-  /** Ricarica utente e richiesta dal server (es. dopo un'approvazione). */
-  refreshSession: () => Promise<void>;
-
+interface EventsState {
   events: EventSummary[];
   loading: boolean;
   error: string | null;
@@ -30,42 +12,21 @@ interface AppState {
   toggleRegistration: (e: EventSummary) => Promise<void>;
   saveEvent: (input: EventInput, id?: number) => Promise<EventSummary>;
   deleteEvent: (id: number) => Promise<void>;
-
-  toast: Toast | null;
-  notify: (text: string, kind?: Toast['kind']) => void;
 }
 
-const AppContext = createContext<AppState | null>(null);
+const EventsContext = createContext<EventsState | null>(null);
 
-/** Stato globale: sessione dell'utente, eventi e azioni che li modificano. */
-export function AppProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<SessionInfo>({ user: null, organizerRequest: null });
-  const [authReady, setAuthReady] = useState(false);
+/** Elenco degli eventi e azioni che lo modificano (preferiti, iscrizioni, gestione). */
+export function EventsProvider({ children }: { children: ReactNode }) {
+  const { notify } = useToast();
+  const { currentUser, authReady } = useAuth();
+  const userId = currentUser?.id ?? null;
+
   const [events, setEvents] = useState<EventSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<Toast | null>(null);
 
-  const userId = session.user?.id ?? null;
-
-  const notify = useCallback((text: string, kind: Toast['kind'] = 'ok') => {
-    const id = Date.now();
-    setToast({ id, text, kind });
-    setTimeout(() => setToast((t) => (t?.id === id ? null : t)), 3500);
-  }, []);
-
-  const refreshSession = useCallback(async () => {
-    setSession(await api.me());
-  }, []);
-
-  // All'avvio: c'è già una sessione (cookie) attiva?
-  useEffect(() => {
-    refreshSession()
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setAuthReady(true));
-  }, [refreshSession]);
-
-  // Eventi: ricaricati quando cambia utente, perché preferiti e iscrizioni dipendono da chi guarda.
+  // Ricaricati quando cambia utente, perché preferiti e iscrizioni dipendono da chi guarda.
   useEffect(() => {
     if (!authReady) return;
     let cancelled = false;
@@ -88,6 +49,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  /** Esegue un'azione mostrando il messaggio di successo o l'errore. */
   const run = useCallback(
     async <T,>(action: () => Promise<T>, success?: string): Promise<T> => {
       try {
@@ -95,38 +57,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (success) notify(success);
         return result;
       } catch (e) {
-        notify(e instanceof Error ? e.message : String(e), 'error');
+        notify(errorMessage(e), 'error');
         throw e;
       }
     },
     [notify],
   );
 
-  const value: AppState = {
-    currentUser: session.user,
-    organizerRequest: session.organizerRequest,
-    authReady,
-    // Login e registrazione lanciano gli errori al form, che li mostra sotto i campi.
-    login: async (input) => {
-      const info = await api.login(input);
-      setSession(info);
-      notify(`Ciao, ${info.user?.name}!`);
-    },
-    register: async (input) => {
-      const info = await api.register(input);
-      setSession(info);
-      notify(info.organizerRequest ? 'Account creato: la richiesta da organizzatore è in attesa' : 'Account creato!');
-    },
-    logout: async () => {
-      await run(() => api.logout(), 'Sei uscito dal tuo account');
-      setSession({ user: null, organizerRequest: null });
-    },
-    requestOrganizer: async (message) => {
-      const request = await run(() => api.requestOrganizer(message), 'Richiesta inviata');
-      setSession((s) => ({ ...s, organizerRequest: request }));
-    },
-    refreshSession,
-
+  const value: EventsState = {
     events,
     loading,
     error,
@@ -152,16 +90,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await run(() => api.deleteEvent(id), 'Evento eliminato');
       setEvents((list) => list.filter((e) => e.id !== id));
     },
-
-    toast,
-    notify,
   };
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return <EventsContext.Provider value={value}>{children}</EventsContext.Provider>;
 }
 
-export function useApp(): AppState {
-  const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp va usato dentro <AppProvider>');
+export function useEvents(): EventsState {
+  const ctx = useContext(EventsContext);
+  if (!ctx) throw new Error('useEvents va usato dentro <EventsProvider>');
   return ctx;
 }

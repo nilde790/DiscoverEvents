@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ROLE_LABELS } from '@/lib/constants';
-import { useApp } from '@/features/events/EventsContext';
+import { useAuth } from '@/features/auth/AuthContext';
 import { formatDate } from '@/lib/format';
 
 const ROLE_DESCRIPTIONS = {
@@ -12,7 +12,7 @@ const ROLE_DESCRIPTIONS = {
 
 /** Dati dell'account e stato della richiesta per diventare organizzatore. */
 export function ProfilePage() {
-  const { currentUser, organizerRequest, requestOrganizer, refreshSession } = useApp();
+  const { currentUser, organizerRequest, requestOrganizer, refreshSession } = useAuth();
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 

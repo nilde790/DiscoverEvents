@@ -10,7 +10,7 @@
     {
       "name": "web",
       "runtimeExecutable": "C:\\Program Files\\nodejs\\npm.cmd",
-      "runtimeArgs": ["run", "dev:client"],
+      "runtimeArgs": ["run", "dev:web"],
       "port": 5173
     }
   ]

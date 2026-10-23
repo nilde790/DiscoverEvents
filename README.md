@@ -49,7 +49,8 @@ Il limite di partecipanti è garantito dal server: anche con richieste simultane
 | Autenticazione | Sessioni con cookie (express-session), password con bcrypt (bcryptjs), limite ai tentativi (express-rate-limit) |
 | Database | SQLite (modulo `node:sqlite` integrato in Node.js) |
 | Validazione | Zod, con le stesse regole su client e server |
-| Test | `node:test` sulle API |
+| Qualità | `node:test` sulle API, ESLint, Prettier, CI con GitHub Actions |
+| Struttura | Monorepo con npm workspaces |
 
 ## Avvio rapido
 
@@ -66,8 +67,10 @@ Al primo avvio il database viene creato e popolato con dati dimostrativi nella z
 | Comando | Cosa fa |
 |---|---|
 | `npm run dev` | Avvia frontend e backend insieme |
+| `npm run check` | Tipi, lint, formattazione e test: gli stessi controlli della CI |
 | `npm test` | Esegue i test delle API |
-| `npm run build` | Controlla i tipi e crea la build di produzione |
+| `npm run format` | Formatta il codice con Prettier |
+| `npm run build` | Crea la build di produzione del frontend |
 | `npm run db:reset` | Cancella il database (viene ricreato al prossimo avvio) |
 
 ### Account dimostrativi
@@ -82,7 +85,7 @@ Nella pagina **Accedi** i pulsanti *Prova come partecipante / organizzatore / am
 
 ### Configurazione
 
-Le impostazioni si leggono da variabili d'ambiente o da un file `.env` (vedi [`.env.example`](.env.example)). In sviluppo funzionano i valori predefiniti; in produzione (`NODE_ENV=production`) è obbligatoria `SESSION_SECRET` e i cookie viaggiano solo su HTTPS.
+Le impostazioni del server si leggono da variabili d'ambiente o dal file `apps/api/.env` (vedi [`apps/api/.env.example`](apps/api/.env.example)). In sviluppo funzionano i valori predefiniti; in produzione (`NODE_ENV=production`) è obbligatoria `SESSION_SECRET` e i cookie viaggiano solo su HTTPS.
 
 ### Sicurezza
 
@@ -94,20 +97,31 @@ Le impostazioni si leggono da variabili d'ambiente o da un file `.env` (vedi [`.
 
 ## Architettura
 
+Monorepo con **npm workspaces**: frontend e backend sono applicazioni separate, ognuna con le sue dipendenze, che condividono un pacchetto comune. Il codice è organizzato **per funzionalità**: tutto ciò che riguarda, ad esempio, il login sta nella stessa cartella.
+
 ```
 DiscoverEvent/
-├── shared/          Tipi e regole di validazione comuni a client e server
-├── server/          API REST (Express) e accesso al database (SQLite)
-│   ├── app.ts         Rotte e controlli di permesso
-│   ├── repository.ts  Tutte le query SQL
-│   ├── sessionStore.ts  Sessioni di login salvate nel database
-│   ├── db.ts          Schema del database
-│   └── seed.ts        Dati dimostrativi
-└── src/             Applicazione React
-    ├── pages/         Una pagina per ogni sezione dell'app
-    ├── components/    Mappa, card evento, filtri, badge di stato
-    ├── context/       Stato condiviso: utente corrente ed eventi
-    └── hooks/         Geolocalizzazione e filtri di ricerca
+├── apps/
+│   ├── api/                    Backend: API REST con Express e SQLite
+│   │   └── src/
+│   │       ├── modules/          Una cartella per funzionalità: rotte, query SQL e test
+│   │       │   ├── auth/
+│   │       │   ├── events/
+│   │       │   └── organizer-requests/
+│   │       ├── middleware/       Sessione, utente corrente, gestione errori
+│   │       ├── db/               Schema, migrazioni, dati demo, sessioni
+│   │       └── config.ts         Variabili d'ambiente validate all'avvio
+│   └── web/                    Frontend: applicazione React
+│       └── src/
+│           ├── features/         Una cartella per funzionalità: pagine, componenti, stato
+│           │   ├── auth/
+│           │   ├── events/
+│           │   ├── organizer/
+│           │   └── admin/
+│           ├── components/       Componenti generici (campi, notifiche, intestazione)
+│           └── lib/              Client API, formattazione, utilità
+└── packages/
+    └── shared/                 Tipi e regole di validazione comuni a frontend e backend
 ```
 
 In sviluppo Vite inoltra le chiamate `/api` al server Express, quindi frontend e backend si usano come un'unica applicazione.

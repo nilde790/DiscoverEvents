@@ -1,0 +1,5 @@
+# Commit di sola formattazione: "git blame" li salta e mostra chi ha scritto davvero ogni riga.
+# GitHub legge questo file in automatico; in locale: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: formatta il codice con Prettier
+57bd0181e43eb18ae569bcf8c19d97cf770b1eb7

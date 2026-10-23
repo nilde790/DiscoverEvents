@@ -1,4 +1,4 @@
-import type { EventDetail, EventInput, EventSummary, OrganizerRequest, User } from '@discoverevent/shared/types';
+import type { EventDetail, EventInput, EventSummary, OrganizerRequest, Place, User } from '@discoverevent/shared/types';
 import type { LoginInput, RegisterInput } from '@discoverevent/shared/validation';
 
 export class ApiError extends Error {
@@ -64,4 +64,6 @@ export const api = {
     request<EventSummary>(`/events/${id}/registration`, registered ? 'PUT' : 'DELETE'),
   setFavorite: (id: number, favorite: boolean) =>
     request<EventSummary>(`/events/${id}/favorite`, favorite ? 'PUT' : 'DELETE'),
+
+  searchPlaces: (query: string) => request<Place[]>(`/places/search?q=${encodeURIComponent(query)}`),
 };

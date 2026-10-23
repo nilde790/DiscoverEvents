@@ -41,6 +41,16 @@ export interface EventInput {
   capacity: number;
 }
 
+/** Città o paese trovato dalla ricerca per nome (GET /api/places/search). */
+export interface Place {
+  /** Nome breve, es. "Bologna". */
+  name: string;
+  /** Nome con la regione, per distinguere omonimi: es. "San Marco, Campania". */
+  label: string;
+  lat: number;
+  lng: number;
+}
+
 /** Evento come lo restituisce l'API, con i dati calcolati per l'utente corrente. */
 export interface EventSummary extends EventInput {
   id: number;

@@ -10,6 +10,7 @@ const envSchema = z
     API_PORT: z.coerce.number().int().positive().default(3001),
     SESSION_SECRET: z.string().optional(),
     DB_PATH: z.string().optional(),
+    GEOCODER_USER_AGENT: z.string().min(1).default('DiscoverEvent/0.3 (progetto didattico)'),
   })
   .superRefine((env, ctx) => {
     // Senza una chiave segreta robusta chiunque potrebbe falsificare i cookie di sessione: meglio non partire.
@@ -27,6 +28,7 @@ export interface Config {
   port: number;
   sessionSecret: string;
   dbPath?: string;
+  geocoderUserAgent: string;
 }
 
 /** Legge .env (se presente) e le variabili d'ambiente; si ferma con un messaggio chiaro se qualcosa non va. */
@@ -53,5 +55,6 @@ export function loadConfig(): Config {
     port: env.API_PORT,
     sessionSecret: env.SESSION_SECRET ?? DEV_SESSION_SECRET,
     dbPath: env.DB_PATH,
+    geocoderUserAgent: env.GEOCODER_USER_AGENT,
   };
 }

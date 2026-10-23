@@ -1,5 +1,40 @@
 import type { DatabaseSync } from 'node:sqlite';
-import type { EventCategory, EventDetail, EventInput, EventSummary, Participant, User } from '../shared/types';
+import type {
+  EventCategory,
+  EventDetail,
+  EventInput,
+  EventSummary,
+  OrganizerRequest,
+  Participant,
+  RequestStatus,
+  Role,
+  User,
+} from '../shared/types';
+
+interface RequestRow {
+  id: number;
+  user_id: number;
+  user_name: string;
+  user_email: string;
+  message: string;
+  status: RequestStatus;
+  created_at: string;
+  decided_at: string | null;
+}
+
+const REQUEST_SELECT = `
+  SELECT r.*, u.name AS user_name, u.email AS user_email
+  FROM organizer_requests r
+  JOIN users u ON u.id = r.user_id`;
+
+const toRequest = (r: RequestRow): OrganizerRequest => ({
+  id: r.id,
+  user: { id: r.user_id, name: r.user_name, email: r.user_email },
+  message: r.message,
+  status: r.status,
+  createdAt: r.created_at,
+  decidedAt: r.decided_at,
+});
 
 /** Riga restituita dalla query degli eventi (nomi colonna in stile SQL). */
 interface EventRow {
@@ -50,13 +85,68 @@ const toSummary = (r: EventRow): EventSummary => ({
 /** Accesso ai dati: tutto l'SQL dell'app sta qui, le rotte non ne vedono. */
 export function createRepository(db: DatabaseSync) {
   return {
-    listUsers(): User[] {
-      return db.prepare('SELECT id, name, role FROM users ORDER BY role DESC, name').all() as unknown as User[];
-    },
+    // ---------- Utenti ----------
 
     getUser(id: number): User | undefined {
-      return db.prepare('SELECT id, name, role FROM users WHERE id = ?').get(id) as User | undefined;
+      return db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(id) as User | undefined;
     },
+
+    /** Dati necessari al login: l'hash non esce mai da server e repository. */
+    getCredentials(email: string): { id: number; passwordHash: string } | undefined {
+      return db.prepare('SELECT id, password_hash AS passwordHash FROM users WHERE email = ?').get(email) as
+        | { id: number; passwordHash: string }
+        | undefined;
+    },
+
+    emailExists(email: string): boolean {
+      return db.prepare('SELECT 1 FROM users WHERE email = ?').get(email) !== undefined;
+    },
+
+    createUser(name: string, email: string, passwordHash: string): number {
+      const res = db
+        .prepare('INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)')
+        .run(name, email, passwordHash);
+      return Number(res.lastInsertRowid);
+    },
+
+    setRole(userId: number, role: Role) {
+      db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, userId);
+    },
+
+    // ---------- Richieste per diventare organizzatore ----------
+
+    createOrganizerRequest(userId: number, message: string): number {
+      const res = db.prepare('INSERT INTO organizer_requests (user_id, message) VALUES (?, ?)').run(userId, message);
+      return Number(res.lastInsertRowid);
+    },
+
+    getOrganizerRequest(id: number): OrganizerRequest | undefined {
+      const row = db.prepare(`${REQUEST_SELECT} WHERE r.id = ?`).get(id);
+      return row ? toRequest(row as unknown as RequestRow) : undefined;
+    },
+
+    /** Ultima richiesta dell'utente (la più recente), se esiste. */
+    latestOrganizerRequest(userId: number): OrganizerRequest | undefined {
+      const row = db.prepare(`${REQUEST_SELECT} WHERE r.user_id = ? ORDER BY r.id DESC LIMIT 1`).get(userId);
+      return row ? toRequest(row as unknown as RequestRow) : undefined;
+    },
+
+    listOrganizerRequests(status?: RequestStatus): OrganizerRequest[] {
+      const rows = status
+        ? db.prepare(`${REQUEST_SELECT} WHERE r.status = ? ORDER BY r.created_at`).all(status)
+        : db.prepare(`${REQUEST_SELECT} ORDER BY r.created_at DESC`).all();
+      return (rows as unknown as RequestRow[]).map(toRequest);
+    },
+
+    decideOrganizerRequest(id: number, status: Exclude<RequestStatus, 'pending'>, adminId: number) {
+      db.prepare(
+        `UPDATE organizer_requests
+         SET status = ?, decided_by = ?, decided_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+         WHERE id = ?`,
+      ).run(status, adminId, id);
+    },
+
+    // ---------- Eventi ----------
 
     listEvents(userId: number): EventSummary[] {
       const rows = db.prepare(`${EVENT_SELECT} ORDER BY e.start`).all({ $userId: userId });

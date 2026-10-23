@@ -19,6 +19,11 @@ DiscoverEvent è una web app per trovare eventi nella propria zona: concerti, mo
 - **Creazione e modifica** degli eventi, con il luogo scelto cliccando sulla mappa.
 - **Lista iscritti** visibile solo all'organizzatore dell'evento.
 
+**Account e ruoli**
+- **Registrazione e accesso** con email e password; gli eventi si possono esplorare anche senza account.
+- **Tre ruoli**: partecipante, organizzatore, amministratore.
+- **Diventare organizzatore**: lo si chiede alla registrazione o in seguito dal profilo; un **amministratore** approva o rifiuta la richiesta dalla sua area.
+
 **Stato delle iscrizioni**
 
 Ogni evento mostra a colpo d'occhio se ci si può ancora iscrivere:
@@ -41,6 +46,7 @@ Il limite di partecipanti è garantito dal server: anche con richieste simultane
 | Frontend | React 18, TypeScript, Vite, React Router |
 | Mappe | Leaflet con OpenStreetMap |
 | Backend | Node.js, Express |
+| Autenticazione | Sessioni con cookie (express-session), password con bcrypt (bcryptjs), limite ai tentativi (express-rate-limit) |
 | Database | SQLite (modulo `node:sqlite` integrato in Node.js) |
 | Validazione | Zod, con le stesse regole su client e server |
 | Test | `node:test` sulle API |
@@ -64,14 +70,27 @@ Al primo avvio il database viene creato e popolato con dati dimostrativi nella z
 | `npm run build` | Controlla i tipi e crea la build di produzione |
 | `npm run db:reset` | Cancella il database (viene ricreato al prossimo avvio) |
 
-### Utenti dimostrativi
+### Account dimostrativi
 
-Per provare l'app senza registrazione, in alto a destra si sceglie con quale utente navigare:
+Nella pagina **Accedi** i pulsanti *Prova come partecipante / organizzatore / amministratore* entrano con un account demo, senza registrarsi. Tutti gli account demo usano la password `demo1234`:
 
-- **Partecipanti** (es. *Giulia Rossi*): esplorano, salvano e si iscrivono agli eventi.
-- **Organizzatori** (es. *Tech Community Roma*): hanno in più l'*Area organizzatore*.
+| Ruolo | Email |
+|---|---|
+| Partecipante | `giulia.rossi@example.com` |
+| Organizzatore | `techcommunity@example.com` |
+| Amministratore | `admin@example.com` |
 
-> L'identità viene inviata al server con l'header `X-User-Id`. È una scelta pensata per la demo: in produzione andrebbe sostituita da un'autenticazione reale (sessioni o token).
+### Configurazione
+
+Le impostazioni si leggono da variabili d'ambiente o da un file `.env` (vedi [`.env.example`](.env.example)). In sviluppo funzionano i valori predefiniti; in produzione (`NODE_ENV=production`) è obbligatoria `SESSION_SECRET` e i cookie viaggiano solo su HTTPS.
+
+### Sicurezza
+
+- Password salvate solo come hash **bcrypt**, mai in chiaro.
+- Sessione in un cookie **`httpOnly`** (non leggibile dal JavaScript della pagina) e **`SameSite=Lax`** (non inviato dalle richieste di modifica di altri siti).
+- Nuovo id di sessione a ogni accesso, per impedire il furto di sessioni preparate in anticipo.
+- **Massimo 10 tentativi** di accesso o registrazione ogni 15 minuti per indirizzo IP.
+- Stesso messaggio d'errore per email sconosciuta e password sbagliata, per non rivelare quali email sono registrate.
 
 ## Architettura
 
@@ -81,6 +100,7 @@ DiscoverEvent/
 ├── server/          API REST (Express) e accesso al database (SQLite)
 │   ├── app.ts         Rotte e controlli di permesso
 │   ├── repository.ts  Tutte le query SQL
+│   ├── sessionStore.ts  Sessioni di login salvate nel database
 │   ├── db.ts          Schema del database
 │   └── seed.ts        Dati dimostrativi
 └── src/             Applicazione React
@@ -96,7 +116,13 @@ In sviluppo Vite inoltra le chiamate `/api` al server Express, quindi frontend e
 
 | Metodo | Percorso | Descrizione |
 |---|---|---|
-| GET | `/api/users` | Utenti dimostrativi |
+| POST | `/api/auth/register` | Crea un account e accede |
+| POST | `/api/auth/login` | Accesso con email e password |
+| POST | `/api/auth/logout` | Uscita |
+| GET | `/api/auth/me` | Utente corrente e stato della sua richiesta organizzatore |
+| POST | `/api/organizer-requests` | Richiesta per diventare organizzatore |
+| GET | `/api/admin/organizer-requests` | Elenco richieste (solo amministratori) |
+| PUT | `/api/admin/organizer-requests/:id` | Approva o rifiuta (solo amministratori) |
 | GET | `/api/events` | Tutti gli eventi, con preferito e iscrizione dell'utente corrente |
 | GET | `/api/events/:id` | Dettaglio evento (con lista iscritti per l'organizzatore) |
 | POST | `/api/events` | Crea un evento (solo organizzatori) |
@@ -105,11 +131,11 @@ In sviluppo Vite inoltra le chiamate `/api` al server Express, quindi frontend e
 | PUT / DELETE | `/api/events/:id/registration` | Iscrizione / annullamento |
 | PUT / DELETE | `/api/events/:id/favorite` | Aggiunge / rimuove dai preferiti |
 
-Gli errori restituiscono `{ "error": "messaggio", "fields": { "campo": "messaggio" } }` con i codici HTTP 400, 401, 403, 404 o 409.
+Gli errori restituiscono `{ "error": "messaggio", "fields": { "campo": "messaggio" } }` con i codici HTTP 400, 401, 403, 404, 409 o 429.
 
 ## Sviluppi futuri
 
-- Autenticazione reale con registrazione e login
+- Verifica dell'email e recupero della password
 - Lista d'attesa quando un evento è completo
 - Importazione di eventi reali da servizi esterni (es. Ticketmaster Discovery API)
 - Immagini di copertina per gli eventi

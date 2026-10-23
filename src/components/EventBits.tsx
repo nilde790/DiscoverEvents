@@ -1,4 +1,6 @@
+import { Link, useLocation } from 'react-router-dom';
 import { registrationStatus, type EventSummary } from '../../shared/types';
+import { loginLink } from '../utils/navigation';
 import { CATEGORY_COLORS, STATUS_LABELS } from '../constants';
 import { useApp } from '../context/AppContext';
 
@@ -44,7 +46,16 @@ export function Capacity({ event }: { event: EventSummary }) {
 /** Pulsanti preferito e iscrizione, con lo stato corretto per l'utente corrente. */
 export function EventActions({ event, compact = false }: { event: EventSummary; compact?: boolean }) {
   const { currentUser, toggleFavorite, toggleRegistration } = useApp();
-  if (!currentUser) return null;
+  const location = useLocation();
+  if (!currentUser) {
+    return (
+      <div className={`actions ${compact ? 'compact' : ''}`}>
+        <Link to={loginLink(location.pathname)} className="btn btn-secondary">
+          Accedi per iscriverti
+        </Link>
+      </div>
+    );
+  }
 
   const status = registrationStatus(event);
   const isOwner = event.organizer.id === currentUser.id;

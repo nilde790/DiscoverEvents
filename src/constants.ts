@@ -1,4 +1,10 @@
-import type { EventCategory, RegistrationStatus } from '../shared/types';
+import type { EventCategory, RegistrationStatus, Role } from '../shared/types';
+
+export const ROLE_LABELS: Record<Role, string> = {
+  participant: 'Partecipante',
+  organizer: 'Organizzatore',
+  admin: 'Amministratore',
+};
 import type { LatLng } from './utils/geo';
 
 export const CATEGORY_COLORS: Record<EventCategory, string> = {

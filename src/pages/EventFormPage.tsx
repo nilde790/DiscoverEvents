@@ -1,8 +1,9 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CATEGORIES, type EventInput } from '../../shared/types';
 import { eventInputSchema, fieldErrors } from '../../shared/validation';
-import { ApiError } from '../api';
+import { api, ApiError } from '../api';
+import { Field } from '../components/Field';
 import { LocationMap } from '../components/MapView';
 import { FALLBACK_CENTER } from '../constants';
 import { useApp } from '../context/AppContext';
@@ -47,22 +48,12 @@ const toInput = (v: FormValues): EventInput => ({
   capacity: Number(v.capacity),
 });
 
-function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
-  return (
-    <label className={`field ${error ? 'has-error' : ''}`}>
-      <span>{label}</span>
-      {children}
-      {error && <small className="field-error">{error}</small>}
-    </label>
-  );
-}
-
 /** Creazione (/organizzatore/nuovo) e modifica (/organizzatore/eventi/:id/modifica) di un evento. */
 export function EventFormPage() {
   const { id } = useParams();
   const editingId = id ? Number(id) : undefined;
   const navigate = useNavigate();
-  const { api, currentUser, saveEvent } = useApp();
+  const { currentUser, saveEvent } = useApp();
 
   const [values, setValues] = useState<FormValues | null>(editingId ? null : emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -88,7 +79,7 @@ export function EventFormPage() {
         }),
       )
       .catch((e: Error) => setLoadError(e.message));
-  }, [api, editingId]);
+  }, [editingId]);
 
   if (currentUser?.role !== 'organizer') {
     return <div className="page"><p className="placeholder">Solo gli organizzatori possono creare o modificare eventi.</p></div>;

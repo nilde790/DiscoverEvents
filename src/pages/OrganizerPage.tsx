@@ -12,7 +12,9 @@ export function OrganizerPage() {
     return (
       <div className="page">
         <h1>Area organizzatore</h1>
-        <p className="placeholder">Quest'area è riservata agli organizzatori: scegli un organizzatore dal menu "Sei:" in alto.</p>
+        <p className="placeholder">
+          Quest'area è riservata agli organizzatori. Puoi chiedere di diventarlo dal tuo <Link to="/profilo">profilo</Link>.
+        </p>
       </div>
     );
   }

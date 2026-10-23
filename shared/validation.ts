@@ -30,6 +30,42 @@ export const eventInputSchema = z.object({
     .max(100000),
 });
 
+const email = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email('Indirizzo email non valido')
+  .max(254, 'Indirizzo email troppo lungo');
+
+/** Motivazione facoltativa della richiesta per diventare organizzatore. */
+const organizerMessage = z.string().trim().max(500, 'Massimo 500 caratteri').default('');
+
+export const registerSchema = z.object({
+  name: z.string().trim().min(2, 'Il nome deve avere almeno 2 caratteri').max(60, 'Nome troppo lungo'),
+  email,
+  // bcrypt considera solo i primi 72 byte: oltre, due password diverse risulterebbero uguali.
+  password: z
+    .string()
+    .min(8, 'La password deve avere almeno 8 caratteri')
+    .refine((p) => new TextEncoder().encode(p).length <= 72, 'Password troppo lunga (massimo 72 caratteri)'),
+  wantsOrganizer: z.boolean().default(false),
+  organizerMessage,
+});
+
+export const loginSchema = z.object({
+  email,
+  password: z.string().min(1, 'Inserisci la password'),
+});
+
+export const organizerRequestSchema = z.object({ message: organizerMessage });
+
+export const decisionSchema = z.object({
+  decision: z.enum(['approved', 'rejected'], { message: 'Decisione non valida' }),
+});
+
+export type RegisterInput = z.input<typeof registerSchema>;
+export type LoginInput = z.input<typeof loginSchema>;
+
 /** Primo messaggio di errore per ogni campo, comodo da mostrare sotto gli input. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

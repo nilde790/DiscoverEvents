@@ -3,12 +3,26 @@
 export const CATEGORIES = ['Musica', 'Sport', 'Arte', 'Cibo', 'Teatro', 'Tech'] as const;
 export type EventCategory = (typeof CATEGORIES)[number];
 
-export type Role = 'participant' | 'organizer';
+export type Role = 'participant' | 'organizer' | 'admin';
 
+/** Utente autenticato, come lo vede lui stesso (l'email non viene mai mostrata ad altri). */
 export interface User {
   id: number;
   name: string;
+  email: string;
   role: Role;
+}
+
+export type RequestStatus = 'pending' | 'approved' | 'rejected';
+
+/** Richiesta di un partecipante per diventare organizzatore. */
+export interface OrganizerRequest {
+  id: number;
+  user: { id: number; name: string; email: string };
+  message: string;
+  status: RequestStatus;
+  createdAt: string;
+  decidedAt: string | null;
 }
 
 /** Dati che un organizzatore inserisce per creare o modificare un evento. */

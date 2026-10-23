@@ -1,4 +1,6 @@
+import bcrypt from 'bcryptjs';
 import type { DatabaseSync } from 'node:sqlite';
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '../shared/demo';
 import type { EventCategory } from '../shared/types';
 
 /** Centro dei dati demo: Roma. */
@@ -7,12 +9,16 @@ const RADIUS_KM = 10;
 const EVENT_COUNT = 90;
 
 /** Ogni organizzatore demo si occupa di categorie coerenti con il suo nome. */
-const ORGANIZERS: { name: string; categories: EventCategory[] }[] = [
-  { name: 'Associazione Arte Viva', categories: ['Arte', 'Teatro', 'Musica'] },
-  { name: 'Sport Insieme ASD', categories: ['Sport'] },
-  { name: 'Gusto Locale APS', categories: ['Cibo'] },
-  { name: 'Tech Community Roma', categories: ['Tech'] },
+const ORGANIZERS: { name: string; email: string; categories: EventCategory[] }[] = [
+  { name: 'Associazione Arte Viva', email: 'arteviva@example.com', categories: ['Arte', 'Teatro', 'Musica'] },
+  { name: 'Sport Insieme ASD', email: 'sportinsieme@example.com', categories: ['Sport'] },
+  { name: 'Gusto Locale APS', email: 'gustolocale@example.com', categories: ['Cibo'] },
+  { name: 'Tech Community Roma', email: DEMO_ACCOUNTS.organizer.email, categories: ['Tech'] },
 ];
+
+/** "Martina De Luca" -> "martina.de.luca@example.com" (example.com è un dominio riservato agli esempi). */
+const toDemoEmail = (name: string) =>
+  `${name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '.')}@example.com`;
 const PARTICIPANTS = [
   'Giulia Rossi', 'Marco Bianchi', 'Sara Romano', 'Luca Colombo', 'Chiara Ricci',
   'Matteo Marino', 'Francesca Greco', 'Davide Bruno', 'Elena Gallo', 'Andrea Conti',
@@ -68,13 +74,24 @@ export function seed(db: DatabaseSync) {
   const pick = <T>(arr: readonly T[]) => arr[Math.floor(rand() * arr.length)];
   const categories = Object.keys(TEMPLATES) as EventCategory[];
 
-  const insertUser = db.prepare('INSERT INTO users (name, role) VALUES (?, ?)');
+  // Tutti gli account demo hanno la stessa password: basta calcolarne l'hash una volta.
+  const passwordHash = bcrypt.hashSync(DEMO_PASSWORD, 10);
+  const insertUser = db.prepare('INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)');
+  const addUser = (name: string, email: string, role: string) =>
+    Number(insertUser.run(name, email, passwordHash, role).lastInsertRowid);
+
+  addUser('Amministratore Demo', DEMO_ACCOUNTS.admin.email, 'admin');
   const organizerByCategory = {} as Record<EventCategory, number>;
   for (const o of ORGANIZERS) {
-    const id = Number(insertUser.run(o.name, 'organizer').lastInsertRowid);
+    const id = addUser(o.name, o.email, 'organizer');
     for (const c of o.categories) organizerByCategory[c] = id;
   }
-  const participantIds = PARTICIPANTS.map((n) => Number(insertUser.run(n, 'participant').lastInsertRowid));
+  const participantIds = PARTICIPANTS.map((n) => addUser(n, toDemoEmail(n), 'participant'));
+
+  // Due richieste in attesa, così l'area amministratore non parte vuota.
+  const insertRequest = db.prepare('INSERT INTO organizer_requests (user_id, message) VALUES (?, ?)');
+  insertRequest.run(participantIds[1], 'Organizzo serate di giochi da tavolo nel mio quartiere da due anni.');
+  insertRequest.run(participantIds[4], 'Vorrei pubblicare le visite guidate gratuite della mia associazione.');
 
   const insertEvent = db.prepare(`
     INSERT INTO events (title, category, description, venue, lat, lng, start, duration_minutes, price, capacity, organizer_id)

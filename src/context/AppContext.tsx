@@ -1,8 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { EventInput, EventSummary, User } from '../../shared/types';
-import { createApi, type Api } from '../api';
-
-const USER_KEY = 'discoverevent.userId';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import type { EventInput, EventSummary, OrganizerRequest, User } from '../../shared/types';
+import type { LoginInput, RegisterInput } from '../../shared/validation';
+import { api, type SessionInfo } from '../api';
 
 interface Toast {
   id: number;
@@ -11,10 +10,19 @@ interface Toast {
 }
 
 interface AppState {
-  api: Api;
-  users: User[];
+  /** null = visitatore non autenticato. */
   currentUser: User | null;
-  setCurrentUserId: (id: number) => void;
+  /** Ultima richiesta per diventare organizzatore dell'utente corrente, se esiste. */
+  organizerRequest: OrganizerRequest | null;
+  /** false finché non si sa se c'è una sessione attiva (evita di mostrare "Accedi" per un attimo). */
+  authReady: boolean;
+  login: (input: LoginInput) => Promise<void>;
+  register: (input: RegisterInput) => Promise<void>;
+  logout: () => Promise<void>;
+  requestOrganizer: (message: string) => Promise<void>;
+  /** Ricarica utente e richiesta dal server (es. dopo un'approvazione). */
+  refreshSession: () => Promise<void>;
+
   events: EventSummary[];
   loading: boolean;
   error: string | null;
@@ -22,32 +30,23 @@ interface AppState {
   toggleRegistration: (e: EventSummary) => Promise<void>;
   saveEvent: (input: EventInput, id?: number) => Promise<EventSummary>;
   deleteEvent: (id: number) => Promise<void>;
+
   toast: Toast | null;
   notify: (text: string, kind?: Toast['kind']) => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
 
-function readStoredUserId(): number | null {
-  try {
-    const v = Number(localStorage.getItem(USER_KEY));
-    return Number.isInteger(v) && v > 0 ? v : null;
-  } catch {
-    return null;
-  }
-}
-
-/** Stato globale: utente demo selezionato, eventi e azioni che li modificano. */
+/** Stato globale: sessione dell'utente, eventi e azioni che li modificano. */
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [users, setUsers] = useState<User[]>([]);
-  const [userId, setUserId] = useState<number | null>(readStoredUserId);
+  const [session, setSession] = useState<SessionInfo>({ user: null, organizerRequest: null });
+  const [authReady, setAuthReady] = useState(false);
   const [events, setEvents] = useState<EventSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
 
-  const api = useMemo(() => createApi(userId), [userId]);
-  const currentUser = users.find((u) => u.id === userId) ?? null;
+  const userId = session.user?.id ?? null;
 
   const notify = useCallback((text: string, kind: Toast['kind'] = 'ok') => {
     const id = Date.now();
@@ -55,22 +54,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setToast((t) => (t?.id === id ? null : t)), 3500);
   }, []);
 
-  // Utenti: caricati una volta; se non c'è un utente salvato valido si parte dal primo partecipante.
-  useEffect(() => {
-    createApi(null)
-      .users()
-      .then((list) => {
-        setUsers(list);
-        setUserId((id) =>
-          list.some((u) => u.id === id) ? id : (list.find((u) => u.role === 'participant') ?? list[0])?.id ?? null,
-        );
-      })
-      .catch((e: Error) => setError(e.message));
+  const refreshSession = useCallback(async () => {
+    setSession(await api.me());
   }, []);
+
+  // All'avvio: c'è già una sessione (cookie) attiva?
+  useEffect(() => {
+    refreshSession()
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setAuthReady(true));
+  }, [refreshSession]);
 
   // Eventi: ricaricati quando cambia utente, perché preferiti e iscrizioni dipendono da chi guarda.
   useEffect(() => {
-    if (userId === null) return;
+    if (!authReady) return;
     let cancelled = false;
     setLoading(true);
     api
@@ -81,16 +78,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [api, userId]);
-
-  const setCurrentUserId = useCallback((id: number) => {
-    setUserId(id);
-    try {
-      localStorage.setItem(USER_KEY, String(id));
-    } catch {
-      /* la scelta vale comunque per questa sessione */
-    }
-  }, []);
+  }, [authReady, userId]);
 
   const replaceEvent = useCallback((updated: EventSummary) => {
     setEvents((list) => {
@@ -115,15 +103,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const value: AppState = {
-    api,
-    users,
-    currentUser,
-    setCurrentUserId,
+    currentUser: session.user,
+    organizerRequest: session.organizerRequest,
+    authReady,
+    // Login e registrazione lanciano gli errori al form, che li mostra sotto i campi.
+    login: async (input) => {
+      const info = await api.login(input);
+      setSession(info);
+      notify(`Ciao, ${info.user?.name}!`);
+    },
+    register: async (input) => {
+      const info = await api.register(input);
+      setSession(info);
+      notify(info.organizerRequest ? 'Account creato: la richiesta da organizzatore è in attesa' : 'Account creato!');
+    },
+    logout: async () => {
+      await run(() => api.logout(), 'Sei uscito dal tuo account');
+      setSession({ user: null, organizerRequest: null });
+    },
+    requestOrganizer: async (message) => {
+      const request = await run(() => api.requestOrganizer(message), 'Richiesta inviata');
+      setSession((s) => ({ ...s, organizerRequest: request }));
+    },
+    refreshSession,
+
     events,
     loading,
     error,
-    toast,
-    notify,
     toggleFavorite: (e) =>
       run(() => api.setFavorite(e.id, !e.isFavorite))
         .then(replaceEvent)
@@ -146,6 +152,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await run(() => api.deleteEvent(id), 'Evento eliminato');
       setEvents((list) => list.filter((e) => e.id !== id));
     },
+
+    toast,
+    notify,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

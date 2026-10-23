@@ -3,13 +3,14 @@ import { Link, useParams } from 'react-router-dom';
 import type { EventDetail } from '../../shared/types';
 import { Capacity, CategoryBadge, EventActions, StatusBadge } from '../components/EventBits';
 import { LocationMap } from '../components/MapView';
+import { api } from '../api';
 import { useApp } from '../context/AppContext';
 import { endOf, formatDate, formatPrice, formatTime } from '../utils/format';
 
 /** Scheda completa di un evento: data, luogo, descrizione, organizzatore, iscrizioni. */
 export function EventPage() {
   const { id } = useParams();
-  const { api, events, currentUser } = useApp();
+  const { events, currentUser } = useApp();
   const [detail, setDetail] = useState<EventDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +28,8 @@ export function EventPage() {
     return () => {
       cancelled = true;
     };
-  }, [api, id, registeredCount]);
+    // Si ricarica anche quando cambia utente: la lista iscritti dipende da chi guarda.
+  }, [id, registeredCount, currentUser?.id]);
 
   if (error) return <div className="page"><p className="notice error">{error}</p><Link to="/catalogo">← Torna al catalogo</Link></div>;
   if (!detail) return <div className="page muted">Caricamento…</div>;

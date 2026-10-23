@@ -1,4 +1,5 @@
-import type { EventDetail, EventInput, EventSummary, User } from '../shared/types';
+import type { EventDetail, EventInput, EventSummary, OrganizerRequest, User } from '../shared/types';
+import type { LoginInput, RegisterInput } from '../shared/validation';
 
 export class ApiError extends Error {
   constructor(
@@ -10,15 +11,20 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, userId: number | null, method = 'GET', body?: unknown): Promise<T> {
+/** Risposta di login, registrazione e /auth/me. */
+export interface SessionInfo {
+  user: User | null;
+  organizerRequest: OrganizerRequest | null;
+}
+
+async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`/api${path}`, {
       method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(userId ? { 'X-User-Id': String(userId) } : {}),
-      },
+      // Il cookie di sessione viaggia da solo con ogni richiesta allo stesso sito.
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
@@ -35,20 +41,26 @@ async function request<T>(path: string, userId: number | null, method = 'GET', b
   return data as T;
 }
 
-/** Client dell'API per l'utente indicato: un metodo per ogni rotta del server. */
-export function createApi(userId: number | null) {
-  return {
-    users: () => request<User[]>('/users', userId),
-    events: () => request<EventSummary[]>('/events', userId),
-    event: (id: number) => request<EventDetail>(`/events/${id}`, userId),
-    createEvent: (input: EventInput) => request<EventDetail>('/events', userId, 'POST', input),
-    updateEvent: (id: number, input: EventInput) => request<EventDetail>(`/events/${id}`, userId, 'PUT', input),
-    deleteEvent: (id: number) => request<void>(`/events/${id}`, userId, 'DELETE'),
-    setRegistration: (id: number, registered: boolean) =>
-      request<EventSummary>(`/events/${id}/registration`, userId, registered ? 'PUT' : 'DELETE'),
-    setFavorite: (id: number, favorite: boolean) =>
-      request<EventSummary>(`/events/${id}/favorite`, userId, favorite ? 'PUT' : 'DELETE'),
-  };
-}
+/** Client dell'API: un metodo per ogni rotta del server. */
+export const api = {
+  me: () => request<SessionInfo>('/auth/me'),
+  login: (input: LoginInput) => request<SessionInfo>('/auth/login', 'POST', input),
+  register: (input: RegisterInput) => request<SessionInfo>('/auth/register', 'POST', input),
+  logout: () => request<void>('/auth/logout', 'POST'),
 
-export type Api = ReturnType<typeof createApi>;
+  requestOrganizer: (message: string) => request<OrganizerRequest>('/organizer-requests', 'POST', { message }),
+  adminRequests: (onlyPending: boolean) =>
+    request<OrganizerRequest[]>(`/admin/organizer-requests${onlyPending ? '?status=pending' : ''}`),
+  decideRequest: (id: number, decision: 'approved' | 'rejected') =>
+    request<OrganizerRequest>(`/admin/organizer-requests/${id}`, 'PUT', { decision }),
+
+  events: () => request<EventSummary[]>('/events'),
+  event: (id: number) => request<EventDetail>(`/events/${id}`),
+  createEvent: (input: EventInput) => request<EventDetail>('/events', 'POST', input),
+  updateEvent: (id: number, input: EventInput) => request<EventDetail>(`/events/${id}`, 'PUT', input),
+  deleteEvent: (id: number) => request<void>(`/events/${id}`, 'DELETE'),
+  setRegistration: (id: number, registered: boolean) =>
+    request<EventSummary>(`/events/${id}/registration`, registered ? 'PUT' : 'DELETE'),
+  setFavorite: (id: number, favorite: boolean) =>
+    request<EventSummary>(`/events/${id}/favorite`, favorite ? 'PUT' : 'DELETE'),
+};

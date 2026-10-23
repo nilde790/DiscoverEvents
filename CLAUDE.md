@@ -2,42 +2,54 @@
 
 Web app per trovare eventi vicini su mappa, iscriversi e gestirli come organizzatore.
 Frontend React + Vite, backend Express + SQLite (`node:sqlite`), tutto in TypeScript.
+Monorepo con **npm workspaces**: `apps/web`, `apps/api`, `packages/shared`.
 Interfaccia, commenti e messaggi di errore sono **in italiano**.
 
-## Comandi
+## Comandi (dalla radice del progetto)
 
 | Comando | Uso |
 |---|---|
 | `npm run dev` | Frontend (5173) + API (3001) insieme |
-| `npm run check` | Controllo tipi + test: **deve passare prima di ogni commit** |
-| `npm test` | Solo i test delle API (`server/*.test.ts`, `node:test`) |
-| `npm run build` | Build di produzione |
-| `npm run db:reset` | Cancella il database locale; si ricrea con i dati demo al prossimo avvio |
+| `npm run check` | Tipi + ESLint + Prettier + test: **deve passare prima di ogni commit** (la CI esegue gli stessi controlli) |
+| `npm test` | Solo i test delle API (`apps/api/src/**/*.test.ts`, `node:test`) |
+| `npm run lint` / `npm run format` | ESLint / formattazione automatica con Prettier |
+| `npm run build` | Build di produzione del frontend |
+| `npm run db:reset` | Cancella il database locale (`apps/api/data`); si ricrea con i dati demo al prossimo avvio |
+| `npm install <pkg> -w @discoverevent/api` | Aggiunge una dipendenza a un solo workspace |
 
 Su Windows, se `node` non è nel PATH della shell: `export PATH="/c/Program Files/nodejs:$PATH"`.
 
 ## Architettura
 
-- `shared/` — tipi (`types.ts`) e regole di validazione Zod (`validation.ts`) usati **sia** dal client **sia** dal server. Un campo nuovo di un evento si aggiunge qui per primo.
-- `server/app.ts` — rotte e permessi. Gli errori si lanciano con `HttpError(status, messaggio, campi?)`.
-- `server/repository.ts` — **tutto l'SQL** dell'app. Le rotte non scrivono query.
-- `server/db.ts` — schema e versione dello schema (`PRAGMA user_version`); `server/seed.ts` — dati demo (deterministici, seme fisso).
-- `server/sessionStore.ts` — sessioni di login salvate in SQLite.
-- `server/index.ts` — configurazione da variabili d'ambiente (vedi `.env.example`).
-- `src/context/AppContext.tsx` — stato globale (utente, eventi) e azioni che chiamano l'API.
-- `src/api.ts` — client HTTP: un metodo per ogni rotta del server.
-- `src/pages/` — una pagina per rotta; `src/components/` — pezzi riusabili.
+**`packages/shared`** (`@discoverevent/shared`) — tipi (`types`), regole Zod (`validation`) e account demo (`demo`), usati **sia** dal frontend **sia** dal backend. Un campo nuovo di un evento si aggiunge qui per primo.
+
+**`apps/api/src`** — organizzato per **funzionalità**:
+- `modules/<nome>/` — per ogni funzionalità (`auth`, `events`, `organizer-requests`): `*.routes.ts` (rotte e permessi), `*.repository.ts` (**tutto l'SQL**, le rotte non scrivono query), `*.test.ts`.
+- `middleware/` — sessione, utente corrente (`currentUser`, `requireRole`), gestione errori.
+- `lib/http.ts` — `HttpError(status, messaggio, campi?)`, `parseBody`, `idParam`, `asyncRoute`.
+- `db/` — apertura e migrazioni (`database.ts`), schema (`schema.ts`), dati demo (`seed.ts`), sessioni (`session-store.ts`).
+- `config.ts` — variabili d'ambiente validate all'avvio (vedi `apps/api/.env.example`).
+- `app.ts` monta middleware e rotte; `index.ts` avvia il server.
+
+**`apps/web/src`** — organizzato per **funzionalità**, import con l'alias `@/` (= `apps/web/src`):
+- `features/<nome>/` — `auth`, `events`, `organizer`, `admin`: pagine, componenti, hook e contesto di quella funzionalità.
+- `components/ui/` e `components/layout/` — pezzi generici (Field, Toast, Header).
+- `lib/` — client API (un metodo per ogni rotta), formattazione, geo, costanti.
+- `app/` — rotte (`App.tsx`) e provider (`AppProviders.tsx`).
+- Stato globale diviso in tre contesti: `useAuth()`, `useEvents()`, `useToast()`.
 
 ## Regole
 
 - **Il server è l'unica fonte di verità** su permessi, limiti di posti e validazione. Il client può anticipare i controlli, mai sostituirli.
-- Ogni rotta nuova o regola di business nuova ha almeno un test in `server/app.test.ts`.
+- Una funzionalità nuova vive nella sua cartella `modules/<nome>` (api) e `features/<nome>` (web).
+- Ogni rotta nuova o regola di business nuova ha almeno un test nel `*.test.ts` del suo modulo (helper comuni in `apps/api/src/test/helpers.ts`).
+- Commit di sola formattazione: aggiungi l'hash in `.git-blame-ignore-revs`.
 - Non aggiungere dipendenze npm senza chiederlo: proponi prima l'alternativa e il motivo.
 - Versioni delle dipendenze fissate (niente `^`), lockfile sempre committato.
 - Testi visibili all'utente in italiano, con singolare/plurale corretti.
-- Non committare `server/data/` (database locale) né file `.env`.
-- **Segreti:** `.claude/settings.json` vieta la lettura di `.env` e dei file di chiavi. Non provare ad aggirarlo; per sapere quali variabili esistono leggi `.env.example`. Un segreto non va mai scritto nel codice, nei test o in chat.
-- **Modifiche allo schema del database**: aumenta `SCHEMA_VERSION` in `server/db.ts` e scrivi una migrazione che conservi i dati esistenti. Non cancellare e ricreare le tabelle: ora contengono account reali.
+- Non committare `apps/api/data/` (database locale) né file `.env`.
+- **Segreti:** `.claude/settings.json` vieta la lettura di `.env` e dei file di chiavi. Non provare ad aggirarlo; per sapere quali variabili esistono leggi `apps/api/.env.example`. Un segreto non va mai scritto nel codice, nei test o in chat.
+- **Modifiche allo schema del database**: aumenta `SCHEMA_VERSION` in `apps/api/src/db/schema.ts` e scrivi una migrazione in `database.ts` che conservi i dati esistenti. Non cancellare e ricreare le tabelle: ora contengono account reali.
 - **Autenticazione**: l'utente corrente si ricava solo da `req.session.userId`, mai da dati inviati dal client. Password solo come hash bcrypt; non restituire mai `password_hash` dalle API.
 
 ## Flusso di lavoro
@@ -53,6 +65,6 @@ Su Windows, se `node` non è nel PATH della shell: `export PATH="/c/Program File
 
 - **Login:** registrazione con email e password nell'app (bcryptjs), sessioni con cookie `httpOnly` + `SameSite=Lax` (express-session), limite ai tentativi (express-rate-limit).
 - **Ruoli:** `participant`, `organizer`, `admin`. Si nasce partecipanti; chi vuole organizzare (alla registrazione o dal profilo) invia una richiesta che un amministratore approva o rifiuta.
-- **Account demo:** password pubblica in `shared/demo.ts`, usati dai pulsanti "Prova come…" nella pagina di accesso. In produzione chiunque può entrare come admin demo: da rivedere prima del deploy pubblico.
+- **Account demo:** password pubblica in `packages/shared/src/demo.ts`, usati dai pulsanti "Prova come…" nella pagina di accesso. In produzione chiunque può entrare come admin demo: da rivedere prima del deploy pubblico.
 - **Non ancora presenti:** verifica dell'email, recupero password (richiedono l'invio di email).
 - **Eventi:** oggi solo dati demo a Roma. Previsto un importatore da fonti esterne (Ticketmaster Discovery API, da verificare la copertura in Italia) insieme agli eventi creati dagli organizzatori.

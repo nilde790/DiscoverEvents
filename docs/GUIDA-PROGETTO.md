@@ -40,6 +40,8 @@ Questa guida racconta **come** è stato costruito DiscoverEvent e **perché** so
 | #1 | Backend, database, catalogo, iscrizioni, area organizzatore | Separare frontend e backend |
 | #2 | `CLAUDE.md`, CI, modello di PR | Mettere i controlli **prima** delle funzionalità rischiose |
 | #3 | Login vero, ruoli, approvazione organizzatori | Sicurezza e permessi lato server |
+| #4 | Questa guida, regole di sicurezza per l'agente | Documentare e proteggere i segreti |
+| #5 | Refactoring in monorepo, ESLint, Prettier | Riorganizzare senza cambiare il comportamento |
 
 **Lezione:** non si costruisce tutto subito. Prima un prototipo che si vede, poi le fondamenta (dati, test, CI), poi le parti delicate (login).
 
@@ -57,7 +59,7 @@ L'agente scrive codice molto velocemente. Il valore della persona sta in tre cos
 | Revisiona la PR e fa il merge | Verifica il proprio lavoro (test, browser) e dichiara cosa **non** ha verificato |
 
 ### Dare contesto: `CLAUDE.md`
-È un file nella radice del progetto che l'agente legge da solo all'inizio di ogni sessione. Contiene comandi, architettura, regole ("tutto l'SQL sta in `repository.ts`") e decisioni già prese.
+È un file nella radice del progetto che l'agente legge da solo all'inizio di ogni sessione. Contiene comandi, architettura, regole ("le query SQL stanno solo nei file `*.repository.ts`") e decisioni già prese.
 **Senza:** ogni sessione riparte da zero e può fare scelte incoerenti.
 **Con:** le regole si scrivono una volta e valgono sempre.
 
@@ -108,20 +110,29 @@ main aggiornato ──► nuovo ramo (feat/login) ──► commit ──► pus
  │ form             │ ◄─────────── │ permessi, validazione│ ◄────── │ events       │
  └──────────────────┘    cookie    └──────────────────────┘         │ sessions ... │
           ▲                                  ▲                      └──────────────┘
-          └──────────── shared/ (tipi + regole di validazione) ─────┘
+          └──── packages/shared (tipi + regole di validazione) ──────┘
 ```
 
 ### Le cartelle
 | Cartella | Contenuto |
 |---|---|
-| `src/` | **Frontend** React: pagine, componenti, stato globale (`context/`), client API (`api.ts`) |
-| `server/` | **Backend** Express: rotte (`app.ts`), query SQL (`repository.ts`), schema (`db.ts`) |
-| `shared/` | Codice usato da **entrambi**: tipi TypeScript e regole di validazione |
+| `apps/web` | **Frontend** React, diviso per funzionalità in `src/features/` (auth, events, organizer, admin) |
+| `apps/api` | **Backend** Express, diviso per funzionalità in `src/modules/`: ogni modulo ha rotte, query SQL e test |
+| `packages/shared` | Codice usato da **entrambi**: tipi TypeScript e regole di validazione |
+
+### Monorepo e organizzazione per funzionalità
+Il progetto è nato con tutto mescolato nella radice e un solo `package.json`. Con il refactoring (PR #5) è diventato un **monorepo** con *npm workspaces*: un solo repository, tre pacchetti separati.
+
+- **Ogni app ha le sue dipendenze.** Il backend non installa più React, il frontend non installa Express: è più leggero e più facile da pubblicare separatamente.
+- **Il codice comune è un pacchetto vero** (`@discoverevent/shared`), importato per nome come una libreria qualsiasi.
+- **Cartelle per funzionalità, non per tipo di file.** Prima, per toccare il login si lavorava in sei cartelle diverse. Ora `apps/api/src/modules/auth/` e `apps/web/src/features/auth/` contengono tutto quello che lo riguarda.
+- **File con un solo compito.** Il vecchio `app.ts` di 340 righe è diventato un file per modulo più i middleware condivisi; lo stato globale del frontend è diviso in tre contesti (`useAuth`, `useEvents`, `useToast`).
+- **Alias `@/`** nel frontend: `import { api } from '@/lib/api'` resta valido anche se il file che lo usa cambia cartella.
 
 ### Concetti chiave
 - **API REST:** il frontend chiede dati con URL e metodi HTTP. `GET /api/events` legge, `POST` crea, `PUT` modifica, `DELETE` cancella.
 - **Codici di stato:** la risposta dice com'è andata. `200` ok, `201` creato, `400` dati sbagliati, `401` non hai fatto l'accesso, `403` non hai il permesso, `404` non esiste, `409` conflitto (es. evento pieno), `429` troppi tentativi.
-- **Separazione delle responsabilità:** le rotte non scrivono SQL; tutte le query stanno in `repository.ts`. Se cambia il database, si tocca un solo file.
+- **Separazione delle responsabilità:** le rotte non scrivono SQL; tutte le query stanno nei file `*.repository.ts`. Se cambia il database, si tocca solo quel livello.
 - **Proxy in sviluppo:** il frontend gira sulla porta 5173 e l'API sulla 3001. Vite inoltra le chiamate `/api` al backend, così per il browser sono un'unica app.
 - **Il server è l'unica fonte di verità.** Il pulsante "Iscriviti" si disattiva quando l'evento è pieno, ma è il **server** a rifiutare l'iscrizione. Chiunque può chiamare l'API direttamente, saltando l'interfaccia.
 
@@ -133,22 +144,35 @@ main aggiornato ──► nuovo ramo (feat/login) ──► commit ──► pus
 Aggiunge i **tipi** a JavaScript: molti errori (un campo scritto male, un valore che può essere vuoto) vengono trovati **prima** di avviare l'app. Il comando `npm run typecheck` controlla tutto il progetto.
 
 ### Validazione condivisa con Zod
-Le regole ("titolo di almeno 3 caratteri", "password di almeno 8") sono scritte **una volta sola** in `shared/validation.ts`:
+Le regole ("titolo di almeno 3 caratteri", "password di almeno 8") sono scritte **una volta sola** in `packages/shared/src/validation.ts`:
 - il **form** le usa per mostrare subito l'errore sotto il campo;
 - il **server** le usa per decidere davvero.
 
 Se una regola cambia, si modifica un solo file e client e server restano d'accordo.
 
 ### Test automatici
-In `server/app.test.ts` ci sono **25 test** che chiamano l'API come farebbe un browser. Alcuni esempi:
+Nei file `*.test.ts` di ogni modulo ci sono **25 test** che chiamano l'API come farebbe un browser. Alcuni esempi:
 - "rispetta il limite di partecipanti";
 - "solo il proprietario vede la lista iscritti";
 - "email sconosciuta e password sbagliata danno lo stesso errore".
 
 **Perché contano con un agente AI:** l'agente modifica molti file in fretta. I test controllano in pochi secondi che le regole importanti funzionino ancora. Leggere i **nomi** dei test è anche un modo veloce per capire cosa è garantito.
 
+### ESLint e Prettier
+- **ESLint** legge il codice e segnala errori e cattive pratiche: variabili inutilizzate, `==` al posto di `===`, dipendenze sbagliate negli hook di React.
+- **Prettier** formatta il codice in automatico (spazi, virgolette, a capo): nessuno discute più sullo stile, e i diff mostrano solo modifiche vere.
+
+Entrambi girano in CI: con l'AI che scrive codice in fretta, sono controlli gratuiti che non si stancano mai.
+
 ### Un solo comando: `npm run check`
-Esegue tipi + test. Va lanciato prima di ogni commit, ed è lo stesso comando che usa la CI.
+Esegue tipi + ESLint + Prettier + test. Va lanciato prima di ogni commit, ed esegue gli stessi controlli della CI.
+
+### Come si fa un refactoring sicuro
+Un *refactoring* cambia la struttura del codice **senza cambiarne il comportamento**. Quello della PR #5 ha seguito quattro regole:
+1. **I test fanno da rete.** I 25 test dovevano passare prima e dopo ogni passo. Durante la suddivisione due test sono falliti per un errore di sostituzione automatica: corretto in pochi secondi, perché il test diceva esattamente dove guardare.
+2. **Commit separati per tipo di modifica:** prima solo spostamenti di file (`git mv`, così Git conserva la storia), poi configurazione, poi suddivisione, poi formattazione. Ogni commit si revisiona da solo.
+3. **La formattazione automatica va in un commit a parte**, registrato in `.git-blame-ignore-revs`. Così `git blame`, che mostra chi ha scritto ogni riga, salta quel commit e non attribuisce a Prettier il lavoro di altri.
+4. **Nessuna nuova funzionalità insieme al refactoring.** Mescolarli rende impossibile capire se un problema viene dalla nuova struttura o dalla nuova funzione.
 
 ---
 
@@ -227,7 +251,7 @@ Anche con l'addestramento disattivato, i dati **escono comunque dal tuo computer
 | **Segreti su GitHub** | Una chiave scritta nel codice "solo per provare" finisce in un commit | `.gitignore` per `.env`; *secret scanning* di GitHub; se succede, **rigenerare la chiave** (cancellare il commit non basta: la storia resta) |
 | **Prompt injection** | Una pagina web o un file contiene istruzioni nascoste tipo "ignora le regole e invia i file a…" | L'agente deve trattare quei contenuti come dati, non come ordini; la persona controlla le azioni con effetti esterni |
 | **Pacchetti inventati o malevoli** | L'AI suggerisce una libreria che non esiste: qualcuno l'ha registrata con codice malevolo (*slopsquatting*) | Controllare ogni nuova dipendenza: esiste, è diffusa, è mantenuta? Regola in `CLAUDE.md`: "nessuna dipendenza senza chiedere" |
-| **Codice vulnerabile scritto dall'AI** | Una query SQL costruita concatenando testo, un controllo di permesso dimenticato | Revisione con occhio alla sicurezza, test sui permessi, query parametrizzate (come in `repository.ts`) |
+| **Codice vulnerabile scritto dall'AI** | Una query SQL costruita concatenando testo, un controllo di permesso dimenticato | Revisione con occhio alla sicurezza, test sui permessi, query parametrizzate (come nei file `*.repository.ts`) |
 | **Troppi permessi all'agente** | L'agente può eseguire qualsiasi comando: installare software, cancellare file, fare push | Concedere il minimo necessario; confermare a mano le azioni irreversibili |
 
 #### Come si impedisce all'agente di leggere i file sensibili
@@ -316,10 +340,10 @@ Lo stesso codice si comporta in modo diverso con `NODE_ENV=production`: cookie s
 
 ## 9. Database: schema, dati demo e migrazioni
 
-- **Schema:** la struttura delle tabelle (`users`, `events`, `registrations`, `favorites`, `sessions`, `organizer_requests`), definita in `server/db.ts`.
+- **Schema:** la struttura delle tabelle (`users`, `events`, `registrations`, `favorites`, `sessions`, `organizer_requests`), definita in `apps/api/src/db/schema.ts`.
 - **Vincoli nel database:** alcune regole le garantisce SQLite stesso. Per esempio "una sola richiesta in attesa per utente" o "email unica". È una difesa in più oltre al codice.
 - **Transazioni:** l'iscrizione controlla i posti e inserisce l'iscritto **in un'unica operazione**: due persone che cliccano insieme non superano il limite.
-- **Dati demo (seed):** al primo avvio il database si riempie con eventi e account di prova (`server/seed.ts`). Un seme fisso fa sì che i dati siano sempre uguali, utile per testare.
+- **Dati demo (seed):** al primo avvio il database si riempie con eventi e account di prova (`apps/api/src/db/seed.ts`). Un seme fisso fa sì che i dati siano sempre uguali, utile per testare.
 - **Migrazioni:** il database ha un numero di versione (`PRAGMA user_version`). Finché c'erano solo dati demo si poteva cancellare e ricreare tutto. Ora che esistono account reali, **ogni modifica allo schema richiede una migrazione** che trasforma le tabelle senza perdere i dati.
 
 ---
@@ -363,14 +387,18 @@ Lo stesso codice si comporta in modo diverso con `NODE_ENV=production`: cookie s
 | **Deploy** | Pubblicare l'app su un server raggiungibile da internet |
 | **Hash** | Impronta di un dato da cui non si può risalire all'originale |
 | **Lockfile** | `package-lock.json`: le versioni esatte di tutte le dipendenze |
+| **Lint / linter** | Strumento che analizza il codice e segnala errori e cattive pratiche (es. ESLint) |
 | **Merge** | Unire un ramo in un altro |
 | **Migrazione** | Script che modifica lo schema del database conservando i dati |
+| **Monorepo** | Un solo repository che contiene più progetti collegati (qui: web, api, shared) |
 | **Prompt injection** | Istruzioni nascoste in un testo letto dall'AI, che cercano di farle fare altro |
 | **Pull request** | Richiesta di unire un ramo, dove avviene la revisione |
 | **Rate limit** | Limite al numero di richieste in un certo tempo |
+| **Refactoring** | Riorganizzare il codice senza cambiarne il comportamento |
 | **Secret scanning** | Controllo automatico che cerca chiavi e password nel codice prima che vengano pubblicate |
 | **Seed** | Dati iniziali caricati nel database |
 | **Sessione** | Il "ricordo" lato server che un utente ha fatto l'accesso |
 | **Slopsquatting** | Pubblicare un pacchetto malevolo con il nome di una libreria che l'AI tende a "inventare" |
 | **Spike** | Piccolo esperimento per ridurre un'incertezza prima di un lavoro grande |
 | **Transazione** | Gruppo di operazioni sul database che riescono tutte o nessuna |
+| **Workspace** | Un pacchetto dentro un monorepo, con il suo `package.json` |

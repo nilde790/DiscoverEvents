@@ -31,11 +31,17 @@ jobs:
       - name: Installa le dipendenze (dal lockfile)
         run: npm ci
 
-      - name: Controllo dei tipi
+      - name: Controllo dei tipi (web, api, shared)
         run: npm run typecheck
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Formattazione (Prettier)
+        run: npm run format:check
 
       - name: Test delle API
         run: npm test
 
-      - name: Build di produzione
-        run: npx vite build
+      - name: Build di produzione del frontend
+        run: npm run build

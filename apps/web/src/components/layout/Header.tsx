@@ -17,7 +17,9 @@ export function Header() {
         DiscoverEvent
       </NavLink>
       <nav className="nav">
-        <NavLink to="/" end>Mappa</NavLink>
+        <NavLink to="/" end>
+          Mappa
+        </NavLink>
         <NavLink to="/catalogo">Catalogo</NavLink>
         {currentUser && <NavLink to="/miei-eventi">I miei eventi</NavLink>}
         {currentUser?.role === 'organizer' && <NavLink to="/organizzatore">Area organizzatore</NavLink>}
@@ -39,8 +41,12 @@ export function Header() {
             </>
           ) : (
             <>
-              <Link to="/accedi" className="btn btn-secondary">Accedi</Link>
-              <Link to="/registrati" className="btn">Registrati</Link>
+              <Link to="/accedi" className="btn btn-secondary">
+                Accedi
+              </Link>
+              <Link to="/registrati" className="btn">
+                Registrati
+              </Link>
             </>
           )}
         </div>

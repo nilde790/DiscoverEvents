@@ -44,7 +44,9 @@ export function ProfilePage() {
           </dd>
         </dl>
         {currentUser.role === 'organizer' && (
-          <Link to="/organizzatore" className="btn">Vai all'area organizzatore</Link>
+          <Link to="/organizzatore" className="btn">
+            Vai all'area organizzatore
+          </Link>
         )}
       </section>
 

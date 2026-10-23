@@ -84,9 +84,18 @@ export function EventFormPage() {
   }, [editingId]);
 
   if (currentUser?.role !== 'organizer') {
-    return <div className="page"><p className="placeholder">Solo gli organizzatori possono creare o modificare eventi.</p></div>;
+    return (
+      <div className="page">
+        <p className="placeholder">Solo gli organizzatori possono creare o modificare eventi.</p>
+      </div>
+    );
   }
-  if (loadError) return <div className="page"><p className="notice error">{loadError}</p></div>;
+  if (loadError)
+    return (
+      <div className="page">
+        <p className="notice error">{loadError}</p>
+      </div>
+    );
   if (!values) return <div className="page muted">Caricamento…</div>;
 
   const set = <K extends keyof FormValues>(key: K, value: FormValues[K]) =>
@@ -117,7 +126,9 @@ export function EventFormPage() {
 
   return (
     <div className="page">
-      <Link to="/organizzatore" className="link">← Area organizzatore</Link>
+      <Link to="/organizzatore" className="link">
+        ← Area organizzatore
+      </Link>
       <h1>{editingId ? 'Modifica evento' : 'Nuovo evento'}</h1>
 
       <form className="event-form" onSubmit={onSubmit} noValidate>
@@ -139,7 +150,13 @@ export function EventFormPage() {
             <input type="datetime-local" value={values.start} onChange={(e) => set('start', e.target.value)} />
           </Field>
           <Field label="Durata (minuti)" error={errors.durationMinutes}>
-            <input type="number" min={15} step={15} value={values.durationMinutes} onChange={(e) => set('durationMinutes', e.target.value)} />
+            <input
+              type="number"
+              min={15}
+              step={15}
+              value={values.durationMinutes}
+              onChange={(e) => set('durationMinutes', e.target.value)}
+            />
           </Field>
           <Field label="Prezzo (€, 0 = gratis)" error={errors.price}>
             <input inputMode="decimal" value={values.price} onChange={(e) => set('price', e.target.value)} />
@@ -148,18 +165,26 @@ export function EventFormPage() {
             <input type="number" min={1} value={values.capacity} onChange={(e) => set('capacity', e.target.value)} />
           </Field>
           <Field label="Luogo" error={errors.venue}>
-            <input value={values.venue} onChange={(e) => set('venue', e.target.value)} placeholder="Es. Teatro Comunale" />
+            <input
+              value={values.venue}
+              onChange={(e) => set('venue', e.target.value)}
+              placeholder="Es. Teatro Comunale"
+            />
           </Field>
         </div>
 
         <div className="field">
-          <span>Posizione sulla mappa <span className="muted">(clicca per spostare il punto)</span></span>
+          <span>
+            Posizione sulla mappa <span className="muted">(clicca per spostare il punto)</span>
+          </span>
           <LocationMap value={values} onChange={(p) => setValues((v) => (v ? { ...v, ...p } : v))} />
         </div>
 
         {errors.form && <p className="notice error">{errors.form}</p>}
         <div className="row-end">
-          <Link to="/organizzatore" className="btn btn-secondary">Annulla</Link>
+          <Link to="/organizzatore" className="btn btn-secondary">
+            Annulla
+          </Link>
           <button type="submit" className="btn" disabled={saving}>
             {saving ? 'Salvataggio…' : editingId ? 'Salva modifiche' : 'Crea evento'}
           </button>

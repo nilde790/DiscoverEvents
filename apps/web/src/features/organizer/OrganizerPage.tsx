@@ -15,7 +15,8 @@ export function OrganizerPage() {
       <div className="page">
         <h1>Area organizzatore</h1>
         <p className="placeholder">
-          Quest'area è riservata agli organizzatori. Puoi chiedere di diventarlo dal tuo <Link to="/profilo">profilo</Link>.
+          Quest'area è riservata agli organizzatori. Puoi chiedere di diventarlo dal tuo{' '}
+          <Link to="/profilo">profilo</Link>.
         </p>
       </div>
     );
@@ -41,12 +42,20 @@ export function OrganizerPage() {
           <h1>Area organizzatore</h1>
           <p className="muted">{currentUser.name}</p>
         </div>
-        <Link to="/organizzatore/nuovo" className="btn">+ Nuovo evento</Link>
+        <Link to="/organizzatore/nuovo" className="btn">
+          + Nuovo evento
+        </Link>
       </div>
 
       <div className="stats">
-        <div className="stat"><span className="stat-value">{active.length}</span><span className="stat-label">Eventi in programma</span></div>
-        <div className="stat"><span className="stat-value">{totalRegistered}</span><span className="stat-label">Iscritti totali</span></div>
+        <div className="stat">
+          <span className="stat-value">{active.length}</span>
+          <span className="stat-label">Eventi in programma</span>
+        </div>
+        <div className="stat">
+          <span className="stat-value">{totalRegistered}</span>
+          <span className="stat-label">Iscritti totali</span>
+        </div>
         <div className="stat">
           <span className="stat-value">{totalCapacity ? Math.round((totalRegistered / totalCapacity) * 100) : 0}%</span>
           <span className="stat-label">Posti occupati</span>
@@ -67,20 +76,36 @@ export function OrganizerPage() {
           <tbody>
             {rows.map((e) => (
               <tr key={e.id} className={registrationStatus(e) === 'closed' ? 'past' : ''}>
-                <td><Link to={`/eventi/${e.id}`}>{e.title}</Link></td>
+                <td>
+                  <Link to={`/eventi/${e.id}`}>{e.title}</Link>
+                </td>
                 <td>{formatDate(e.start)}</td>
-                <td>{e.registeredCount} / {e.capacity}</td>
-                <td><StatusBadge event={e} /></td>
+                <td>
+                  {e.registeredCount} / {e.capacity}
+                </td>
+                <td>
+                  <StatusBadge event={e} />
+                </td>
                 <td className="row-actions">
-                  {registrationStatus(e) !== 'closed' && <Link to={`/organizzatore/eventi/${e.id}/modifica`}>Modifica</Link>}
-                  <button type="button" className="link danger" onClick={() => confirmDelete(e.id, e.title, e.registeredCount)}>
+                  {registrationStatus(e) !== 'closed' && (
+                    <Link to={`/organizzatore/eventi/${e.id}/modifica`}>Modifica</Link>
+                  )}
+                  <button
+                    type="button"
+                    className="link danger"
+                    onClick={() => confirmDelete(e.id, e.title, e.registeredCount)}
+                  >
                     Elimina
                   </button>
                 </td>
               </tr>
             ))}
             {mine.length === 0 && (
-              <tr><td colSpan={5} className="muted">Non hai ancora creato eventi.</td></tr>
+              <tr>
+                <td colSpan={5} className="muted">
+                  Non hai ancora creato eventi.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

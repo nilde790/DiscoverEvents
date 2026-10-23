@@ -80,8 +80,19 @@ export function createEventsRepository(db: DatabaseSync) {
           `INSERT INTO events (title, category, description, venue, lat, lng, start, duration_minutes, price, capacity, organizer_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
-        .run(input.title, input.category, input.description, input.venue, input.lat, input.lng,
-          input.start, input.durationMinutes, input.price, input.capacity, organizerId);
+        .run(
+          input.title,
+          input.category,
+          input.description,
+          input.venue,
+          input.lat,
+          input.lng,
+          input.start,
+          input.durationMinutes,
+          input.price,
+          input.capacity,
+          organizerId,
+        );
       return Number(res.lastInsertRowid);
     },
 
@@ -90,8 +101,19 @@ export function createEventsRepository(db: DatabaseSync) {
         `UPDATE events SET title = ?, category = ?, description = ?, venue = ?, lat = ?, lng = ?,
            start = ?, duration_minutes = ?, price = ?, capacity = ?
          WHERE id = ?`,
-      ).run(input.title, input.category, input.description, input.venue, input.lat, input.lng,
-        input.start, input.durationMinutes, input.price, input.capacity, id);
+      ).run(
+        input.title,
+        input.category,
+        input.description,
+        input.venue,
+        input.lat,
+        input.lng,
+        input.start,
+        input.durationMinutes,
+        input.price,
+        input.capacity,
+        id,
+      );
     },
 
     deleteEvent(id: number) {
@@ -107,7 +129,8 @@ export function createEventsRepository(db: DatabaseSync) {
     },
 
     setFavorite(userId: number, eventId: number, favorite: boolean) {
-      if (favorite) db.prepare('INSERT OR IGNORE INTO favorites (user_id, event_id) VALUES (?, ?)').run(userId, eventId);
+      if (favorite)
+        db.prepare('INSERT OR IGNORE INTO favorites (user_id, event_id) VALUES (?, ?)').run(userId, eventId);
       else db.prepare('DELETE FROM favorites WHERE user_id = ? AND event_id = ?').run(userId, eventId);
     },
   };

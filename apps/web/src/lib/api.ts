@@ -35,7 +35,8 @@ async function request<T>(path: string, method = 'GET', body?: unknown): Promise
   const data = await res.json().catch(() => null);
   if (!res.ok) {
     // Senza corpo JSON l'errore non viene dal nostro server ma dal proxy di Vite: il backend è spento.
-    const fallback = res.status >= 500 ? 'Server non raggiungibile: è avviato con "npm run dev"?' : `Errore ${res.status}`;
+    const fallback =
+      res.status >= 500 ? 'Server non raggiungibile: è avviato con "npm run dev"?' : `Errore ${res.status}`;
     throw new ApiError(res.status, data?.error ?? fallback, data?.fields);
   }
   return data as T;

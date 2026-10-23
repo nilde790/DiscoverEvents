@@ -38,15 +38,13 @@ export function MyEventsPage() {
         <h1>I miei eventi</h1>
         <p className="muted">{currentUser?.name}</p>
       </div>
-      <Section
-        title="Prossime iscrizioni"
-        events={upcoming}
-        empty="Non sei iscritto a nessun evento in programma."
-      />
+      <Section title="Prossime iscrizioni" events={upcoming} empty="Non sei iscritto a nessun evento in programma." />
       <Section title="Preferiti" events={favorites} empty="Non hai ancora salvato eventi tra i preferiti (★)." />
       {past.length > 0 && <Section title="Eventi a cui hai partecipato" events={past} empty="" />}
       <p>
-        <Link to="/catalogo" className="link">Scopri altri eventi nel catalogo →</Link>
+        <Link to="/catalogo" className="link">
+          Scopri altri eventi nel catalogo →
+        </Link>
       </p>
     </div>
   );

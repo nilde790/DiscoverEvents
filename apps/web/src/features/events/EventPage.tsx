@@ -35,7 +35,13 @@ export function EventPage() {
     // Si ricarica anche quando cambia utente: la lista iscritti dipende da chi guarda.
   }, [id, registeredCount, currentUser?.id]);
 
-  if (error) return <div className="page"><p className="notice error">{error}</p><Link to="/catalogo">← Torna al catalogo</Link></div>;
+  if (error)
+    return (
+      <div className="page">
+        <p className="notice error">{error}</p>
+        <Link to="/catalogo">← Torna al catalogo</Link>
+      </div>
+    );
   if (!detail) return <div className="page muted">Caricamento…</div>;
 
   const event = summary ?? detail;
@@ -44,7 +50,9 @@ export function EventPage() {
 
   return (
     <div className="page event-page">
-      <Link to="/catalogo" className="link">← Catalogo</Link>
+      <Link to="/catalogo" className="link">
+        ← Catalogo
+      </Link>
       <div className="event-layout">
         <section>
           <div className="card-top">

@@ -37,7 +37,7 @@ describe('registrazione e accesso', () => {
     assert.equal(res.body.organizerRequest.status, 'pending');
   });
 
-  test("non si può registrare due volte la stessa email, anche con maiuscole diverse", async () => {
+  test('non si può registrare due volte la stessa email, anche con maiuscole diverse', async () => {
     const res = await new Client().call('/auth/register', 'POST', {
       name: 'Doppione',
       email: 'GIULIA.ROSSI@example.com',
@@ -48,7 +48,11 @@ describe('registrazione e accesso', () => {
   });
 
   test('password troppo corta rifiutata', async () => {
-    const res = await new Client().call('/auth/register', 'POST', { name: 'Tizio', email: 'tizio@example.com', password: '123' });
+    const res = await new Client().call('/auth/register', 'POST', {
+      name: 'Tizio',
+      email: 'tizio@example.com',
+      password: '123',
+    });
     assert.equal(res.status, 400);
     assert.ok(res.body.fields.password);
   });

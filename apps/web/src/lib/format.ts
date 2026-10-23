@@ -15,8 +15,7 @@ export const formatTime = (d: Date | string) => timeFmt.format(new Date(d));
 export const formatPrice = (euro: number) =>
   euro === 0 ? 'Gratis' : euro.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
 
-export const formatDistance = (km: number) =>
-  km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+export const formatDistance = (km: number) => (km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`);
 
 export const endOf = (start: string, durationMinutes: number) =>
   new Date(new Date(start).getTime() + durationMinutes * 60_000);

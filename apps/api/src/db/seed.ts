@@ -20,10 +20,26 @@ const ORGANIZERS: { name: string; email: string; categories: EventCategory[] }[]
 const toDemoEmail = (name: string) =>
   `${name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '.')}@example.com`;
 const PARTICIPANTS = [
-  'Giulia Rossi', 'Marco Bianchi', 'Sara Romano', 'Luca Colombo', 'Chiara Ricci',
-  'Matteo Marino', 'Francesca Greco', 'Davide Bruno', 'Elena Gallo', 'Andrea Conti',
-  'Martina De Luca', 'Simone Costa', 'Valentina Giordano', 'Alessio Mancini', 'Federica Rizzo',
-  'Paolo Lombardi', 'Silvia Moretti', 'Giorgio Barbieri', 'Laura Fontana', 'Riccardo Santoro',
+  'Giulia Rossi',
+  'Marco Bianchi',
+  'Sara Romano',
+  'Luca Colombo',
+  'Chiara Ricci',
+  'Matteo Marino',
+  'Francesca Greco',
+  'Davide Bruno',
+  'Elena Gallo',
+  'Andrea Conti',
+  'Martina De Luca',
+  'Simone Costa',
+  'Valentina Giordano',
+  'Alessio Mancini',
+  'Federica Rizzo',
+  'Paolo Lombardi',
+  'Silvia Moretti',
+  'Giorgio Barbieri',
+  'Laura Fontana',
+  'Riccardo Santoro',
 ];
 
 const TEMPLATES: Record<EventCategory, { titles: string[]; venues: string[]; description: string }> = {
@@ -117,7 +133,13 @@ export function seed(db: DatabaseSync) {
     const capacity = pick([5, 8, 10, 15, 20, 30]);
     const eventId = Number(
       insertEvent.run(
-        pick(t.titles), category, t.description, pick(t.venues), lat, lng, start.toISOString(),
+        pick(t.titles),
+        category,
+        t.description,
+        pick(t.venues),
+        lat,
+        lng,
+        start.toISOString(),
         60 + Math.floor(rand() * 6) * 30,
         rand() < 0.35 ? 0 : Math.round(5 + rand() * 45),
         capacity,

@@ -1,0 +1,41 @@
+# Controlli automatici: girano su ogni pull request e su ogni push su main.
+# Se uno di questi passi fallisce, la PR mostra una X rossa e non andrebbe unita.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Se arrivano nuovi commit sulla stessa PR, il controllo precedente viene annullato.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Tipi, test e build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Scarica il codice
+        uses: actions/checkout@v4
+
+      - name: Installa Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Installa le dipendenze (dal lockfile)
+        run: npm ci
+
+      - name: Controllo dei tipi
+        run: npm run typecheck
+
+      - name: Test delle API
+        run: npm test
+
+      - name: Build di produzione
+        run: npx vite build

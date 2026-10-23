@@ -1,0 +1,4 @@
+# Fine riga Unix (LF) per tutti i file di testo, anche su Windows: niente differenze fantasma tra PC e CI.
+* text=auto eol=lf
+*.jpg binary
+*.png binary

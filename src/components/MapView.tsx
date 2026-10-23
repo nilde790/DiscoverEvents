@@ -1,22 +1,29 @@
 import { useEffect } from 'react';
-import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet';
-import { CATEGORY_COLORS } from '../services';
-import type { EventWithDistance, LatLng } from '../types';
+import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet';
+import type { EventSummary } from '../../shared/types';
+import { CATEGORY_COLORS } from '../constants';
+import type { LatLng } from '../utils/geo';
+
+const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
 interface Props {
   center: LatLng;
   radiusKm: number;
-  events: EventWithDistance[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
+  events: EventSummary[];
+  selectedId: number | null;
+  onSelect: (id: number) => void;
 }
 
 /** Sposta la mappa sull'evento selezionato senza rimontare il componente. */
-function FlyToSelected({ target }: { target: LatLng | null }) {
+function FlyTo({ target }: { target: LatLng | null }) {
   const map = useMap();
+  const lat = target?.lat;
+  const lng = target?.lng;
+  // Dipende dalle coordinate, non dall'oggetto: aggiungere ai preferiti non deve far ripartire l'animazione.
   useEffect(() => {
-    if (target) map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), 14), { duration: 0.6 });
-  }, [target, map]);
+    if (lat !== undefined && lng !== undefined) map.flyTo([lat, lng], Math.max(map.getZoom(), 14), { duration: 0.6 });
+  }, [lat, lng, map]);
   return null;
 }
 
@@ -25,11 +32,7 @@ export function MapView({ center, radiusKm, events, selectedId, onSelect }: Prop
 
   return (
     <MapContainer center={[center.lat, center.lng]} zoom={12} className="map">
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-
+      <TileLayer attribution={ATTRIBUTION} url={TILE_URL} />
       <Circle
         center={[center.lat, center.lng]}
         radius={radiusKm * 1000}
@@ -40,7 +43,7 @@ export function MapView({ center, radiusKm, events, selectedId, onSelect }: Prop
         radius={8}
         pathOptions={{ color: '#fff', weight: 3, fillColor: '#0f172a', fillOpacity: 1 }}
       >
-        <Tooltip>Sei qui</Tooltip>
+        <Tooltip>Centro della ricerca</Tooltip>
       </CircleMarker>
 
       {events.map((e) => {
@@ -48,7 +51,7 @@ export function MapView({ center, radiusKm, events, selectedId, onSelect }: Prop
         return (
           <CircleMarker
             key={e.id}
-            center={[e.position.lat, e.position.lng]}
+            center={[e.lat, e.lng]}
             radius={isSelected ? 11 : 7}
             pathOptions={{
               color: isSelected ? '#0f172a' : '#fff',
@@ -63,7 +66,27 @@ export function MapView({ center, radiusKm, events, selectedId, onSelect }: Prop
         );
       })}
 
-      <FlyToSelected target={selected?.position ?? null} />
+      <FlyTo target={selected} />
+    </MapContainer>
+  );
+}
+
+function ClickToPick({ onPick }: { onPick: (p: LatLng) => void }) {
+  useMapEvents({ click: (e) => onPick({ lat: e.latlng.lat, lng: e.latlng.lng }) });
+  return null;
+}
+
+/** Mappa piccola con un solo punto; se `onChange` è presente, un click sposta il punto. */
+export function LocationMap({ value, onChange }: { value: LatLng; onChange?: (p: LatLng) => void }) {
+  return (
+    <MapContainer center={[value.lat, value.lng]} zoom={14} className={`mini-map ${onChange ? 'pickable' : ''}`}>
+      <TileLayer attribution={ATTRIBUTION} url={TILE_URL} />
+      <CircleMarker
+        center={[value.lat, value.lng]}
+        radius={10}
+        pathOptions={{ color: '#fff', weight: 3, fillColor: '#2563eb', fillOpacity: 1 }}
+      />
+      {onChange && <ClickToPick onPick={onChange} />}
     </MapContainer>
   );
 }

@@ -1,69 +1,41 @@
-import { useMemo, useState } from 'react';
-import { EventDashboard } from './components/EventDashboard';
-import { Filters } from './components/Filters';
-import { MapView } from './components/MapView';
-import { useEvents } from './hooks/useEvents';
-import { useGeolocation } from './hooks/useGeolocation';
-import { CATEGORY_COLORS } from './services';
-import type { EventCategory } from './types';
-
-const ALL_CATEGORIES = new Set(Object.keys(CATEGORY_COLORS) as EventCategory[]);
+import { Route, Routes } from 'react-router-dom';
+import { Header } from './components/Header';
+import { useApp } from './context/AppContext';
+import { CatalogPage } from './pages/CatalogPage';
+import { EventFormPage } from './pages/EventFormPage';
+import { EventPage } from './pages/EventPage';
+import { ExplorePage } from './pages/ExplorePage';
+import { MyEventsPage } from './pages/MyEventsPage';
+import { OrganizerPage } from './pages/OrganizerPage';
 
 export default function App() {
-  const geo = useGeolocation();
-  const { events, loading, error } = useEvents(geo.position);
+  const { toast, error, currentUser } = useApp();
 
-  const [radiusKm, setRadiusKm] = useState(5);
-  const [categories, setCategories] = useState<Set<EventCategory>>(ALL_CATEGORIES);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  // Il filtro è derivato: non si salva una seconda copia degli eventi nello stato.
-  const visible = useMemo(
-    () => events.filter((e) => e.distanceKm <= radiusKm && categories.has(e.category)),
-    [events, radiusKm, categories],
-  );
-  const selected = visible.find((e) => e.id === selectedId) ?? null;
-
-  const toggleCategory = (c: EventCategory) =>
-    setCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(c)) next.delete(c);
-      else next.add(c);
-      return next;
-    });
-
-  if (!geo.position) return <div className="splash">Sto cercando la tua posizione…</div>;
+  // Senza utenti il server non risponde: inutile mostrare pagine vuote.
+  if (!currentUser) {
+    return <div className="splash">{error ?? 'Avvio in corso…'}</div>;
+  }
 
   return (
     <div className="app">
-      <header className="topbar">
-        <h1>DiscoverEvent</h1>
-        <Filters
-          radiusKm={radiusKm}
-          onRadiusChange={setRadiusKm}
-          activeCategories={categories}
-          onToggleCategory={toggleCategory}
-        />
-      </header>
-
-      {geo.status === 'fallback' && (
-        <div className="notice">Posizione non disponibile ({geo.error}): mostro gli eventi attorno a Roma.</div>
-      )}
-      {error && <div className="notice error">Errore nel caricamento eventi: {error}</div>}
-
-      <main className="content">
-        <section className="map-wrap">
-          {loading && <div className="loading">Caricamento eventi…</div>}
-          <MapView
-            center={geo.position}
-            radiusKm={radiusKm}
-            events={visible}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-          />
-        </section>
-        <EventDashboard events={visible} selected={selected} onSelect={setSelectedId} />
+      <Header />
+      <main className="main">
+        <Routes>
+          <Route path="/" element={<ExplorePage />} />
+          <Route path="/catalogo" element={<CatalogPage />} />
+          <Route path="/eventi/:id" element={<EventPage />} />
+          <Route path="/miei-eventi" element={<MyEventsPage />} />
+          <Route path="/organizzatore" element={<OrganizerPage />} />
+          <Route path="/organizzatore/nuovo" element={<EventFormPage />} />
+          <Route path="/organizzatore/eventi/:id/modifica" element={<EventFormPage />} />
+          <Route path="*" element={<div className="page placeholder">Pagina non trovata.</div>} />
+        </Routes>
       </main>
+      {toast && (
+        <div key={toast.id} className={`toast ${toast.kind}`} role="status">
+          {toast.text}
+        </div>
+      )}
     </div>
   );
 }

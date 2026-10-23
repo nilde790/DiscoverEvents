@@ -36,6 +36,7 @@ Su Windows, se `node` non è nel PATH della shell: `export PATH="/c/Program File
 - Versioni delle dipendenze fissate (niente `^`), lockfile sempre committato.
 - Testi visibili all'utente in italiano, con singolare/plurale corretti.
 - Non committare `server/data/` (database locale) né file `.env`.
+- **Segreti:** `.claude/settings.json` vieta la lettura di `.env` e dei file di chiavi. Non provare ad aggirarlo; per sapere quali variabili esistono leggi `.env.example`. Un segreto non va mai scritto nel codice, nei test o in chat.
 - **Modifiche allo schema del database**: aumenta `SCHEMA_VERSION` in `server/db.ts` e scrivi una migrazione che conservi i dati esistenti. Non cancellare e ricreare le tabelle: ora contengono account reali.
 - **Autenticazione**: l'utente corrente si ricava solo da `req.session.userId`, mai da dati inviati dal client. Password solo come hash bcrypt; non restituire mai `password_hash` dalle API.
 

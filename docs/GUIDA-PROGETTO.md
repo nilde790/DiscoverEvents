@@ -58,6 +58,9 @@ L'agente scrive codice molto velocemente. Il valore della persona sta in tre cos
 | Prende le decisioni di prodotto (es. "chi approva gli organizzatori?") | Fa domande quando una scelta non è tecnica |
 | Revisiona la PR e fa il merge | Verifica il proprio lavoro (test, browser) e dichiara cosa **non** ha verificato |
 
+### Più sessioni in parallelo
+Un compito per sessione, ognuna sul suo ramo: come avviarle, quando usare un worktree e come tenerle in ordine è spiegato in [Lavorare con più sessioni di Claude Code](SESSIONI-PARALLELE.md).
+
 ### Dare contesto: `CLAUDE.md`
 È un file nella radice del progetto che l'agente legge da solo all'inizio di ogni sessione. Contiene comandi, architettura, regole ("le query SQL stanno solo nei file `*.repository.ts`") e decisioni già prese.
 **Senza:** ogni sessione riparte da zero e può fare scelte incoerenti.

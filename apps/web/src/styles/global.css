@@ -751,6 +751,35 @@ button {
   font-weight: 400;
 }
 
+/* ---------- Piè di pagina e pagine informative ---------- */
+.footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 4px 16px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+.legal section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.legal p,
+.legal ul {
+  margin: 0;
+  line-height: 1.55;
+}
+.legal ul {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 /* ---------- Schermi stretti ---------- */
 @media (max-width: 900px) {
   .explore-body {

@@ -5,6 +5,7 @@ import { SearchFilters } from '@/features/events/components/SearchFilters';
 import { useEvents } from '@/features/events/EventsContext';
 import { useEventFilters } from '@/features/events/hooks/useEventFilters';
 import { useNearbyEvents, type EventWithDistance } from '@/features/events/hooks/useNearbyEvents';
+import { useChosenPlace } from '@/features/places/useChosenPlace';
 
 type SortKey = 'date' | 'distance' | 'popular';
 
@@ -16,7 +17,9 @@ const SORTERS: Record<SortKey, (a: EventWithDistance, b: EventWithDistance) => n
 
 export function CatalogPage() {
   const { events, loading, error } = useEvents();
-  const nearby = useNearbyEvents(events);
+  // Le distanze partono dalla stessa città scelta nella mappa (ricordata nel browser).
+  const { place } = useChosenPlace();
+  const nearby = useNearbyEvents(events, place);
   const filters = useEventFilters();
   const [sort, setSort] = useState<SortKey>('date');
   const [onlyAvailable, setOnlyAvailable] = useState(false);

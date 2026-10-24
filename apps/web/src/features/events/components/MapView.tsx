@@ -27,6 +27,16 @@ function FlyTo({ target }: { target: LatLng | null }) {
   return null;
 }
 
+/** MapContainer usa `center` solo alla prima apertura: quando il centro cambia (nuova città) la mappa va spostata. */
+function Recenter({ center }: { center: LatLng }) {
+  const map = useMap();
+  const { lat, lng } = center;
+  useEffect(() => {
+    map.setView([lat, lng], 12);
+  }, [lat, lng, map]);
+  return null;
+}
+
 export function MapView({ center, radiusKm, events, selectedId, onSelect }: Props) {
   const selected = events.find((e) => e.id === selectedId) ?? null;
 
@@ -66,6 +76,7 @@ export function MapView({ center, radiusKm, events, selectedId, onSelect }: Prop
         );
       })}
 
+      <Recenter center={center} />
       <FlyTo target={selected} />
     </MapContainer>
   );

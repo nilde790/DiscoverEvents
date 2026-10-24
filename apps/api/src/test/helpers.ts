@@ -6,15 +6,25 @@ import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '@discoverevent/shared/demo';
 import type { EventInput } from '@discoverevent/shared/types';
 import { createApp, type AppOptions } from '../app';
 import { openDatabase } from '../db/database';
+import type { Geocoder } from '../modules/places/geocoder';
 
 // Ogni server di test usa un database in memoria con i dati demo: i test non toccano quello vero.
 const servers: Server[] = [];
 after(() => servers.forEach((s) => s.close()));
 
+/** Geocoder finto: i test non chiamano mai il servizio esterno. Conosce solo Bologna. */
+export const fakeGeocoder: Geocoder = {
+  search: async (query) =>
+    query.toLowerCase().startsWith('bol')
+      ? [{ name: 'Bologna', label: 'Bologna, Emilia-Romagna', lat: 44.49, lng: 11.34 }]
+      : [],
+};
+
 export function startServer(options: Partial<AppOptions> = {}) {
   const server = createApp(openDatabase(':memory:'), {
     sessionSecret: 'segreto-di-test',
     authAttemptsPerWindow: 1000,
+    geocoder: fakeGeocoder,
     ...options,
   }).listen(0);
   servers.push(server);

@@ -9,6 +9,8 @@ import { createEventsRepository } from './modules/events/events.repository';
 import { createEventsRouter } from './modules/events/events.routes';
 import { createOrganizerRequestsRepository } from './modules/organizer-requests/organizer-requests.repository';
 import { createOrganizerRequestsRouter } from './modules/organizer-requests/organizer-requests.routes';
+import type { Geocoder } from './modules/places/geocoder';
+import { createPlacesRouter } from './modules/places/places.routes';
 
 export interface AppOptions {
   /** Chiave con cui vengono firmati i cookie di sessione. In produzione arriva da SESSION_SECRET. */
@@ -19,6 +21,8 @@ export interface AppOptions {
   trustProxy?: boolean;
   /** Tentativi di login/registrazione consentiti per IP ogni 15 minuti. */
   authAttemptsPerWindow?: number;
+  /** Servizio che trasforma i nomi delle città in coordinate (nei test, uno finto). */
+  geocoder: Geocoder;
 }
 
 /** Monta l'applicazione: middleware comuni, poi le rotte di ogni modulo, poi la gestione degli errori. */
@@ -39,6 +43,7 @@ export function createApp(db: DatabaseSync, options: AppOptions) {
   app.use('/api', createAuthRouter({ db, users, requests, attemptsPerWindow: options.authAttemptsPerWindow ?? 10 }));
   app.use('/api', createOrganizerRequestsRouter({ db, users, requests }));
   app.use('/api', createEventsRouter({ db, events }));
+  app.use('/api', createPlacesRouter({ geocoder: options.geocoder }));
 
   app.use('/api', notFound);
   app.use(errorHandler);

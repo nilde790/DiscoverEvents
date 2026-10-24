@@ -10,6 +10,8 @@ import { CATEGORY_COLORS, MAX_RADIUS_KM } from '@/lib/constants';
 import { useEvents } from '@/features/events/EventsContext';
 import { useEventFilters } from '@/features/events/hooks/useEventFilters';
 import { useNearbyEvents } from '@/features/events/hooks/useNearbyEvents';
+import { CitySearch } from '@/features/places/CitySearch';
+import { useChosenPlace } from '@/features/places/useChosenPlace';
 import { endOf, formatDate, formatDistance, formatPrice, formatTime } from '@/lib/format';
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -24,7 +26,8 @@ function Stat({ label, value }: { label: string; value: string }) {
 /** Mappa della zona con dashboard laterale: la vista "vicino a me". */
 export function ExplorePage() {
   const { events, loading } = useEvents();
-  const nearby = useNearbyEvents(events);
+  const { place, choose } = useChosenPlace();
+  const nearby = useNearbyEvents(events, place);
   const filters = useEventFilters();
   const [radiusKm, setRadiusKm] = useState(5);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -41,6 +44,7 @@ export function ExplorePage() {
   return (
     <div className="explore">
       <div className="subbar">
+        <CitySearch place={place} centerLabel={nearby.label} onChoose={choose} />
         <SearchFilters filters={filters}>
           <label className="radius">
             Raggio <strong>{radiusKm} km</strong>
@@ -83,7 +87,7 @@ export function ExplorePage() {
               </div>
               <h2>{selected.title}</h2>
               <p className="muted">
-                {selected.venue} · {formatDistance(selected.distanceKm)} da te
+                {selected.venue} · {formatDistance(selected.distanceKm)} {nearby.from}
               </p>
               <dl className="facts">
                 <dt>Quando</dt>

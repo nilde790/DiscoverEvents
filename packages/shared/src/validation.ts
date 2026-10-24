@@ -63,6 +63,11 @@ export const decisionSchema = z.object({
   decision: z.enum(['approved', 'rejected'], { message: 'Decisione non valida' }),
 });
 
+/** Testo della ricerca per città: GET /api/places/search?q=... */
+export const placeSearchSchema = z.object({
+  q: z.string().trim().min(2, 'Scrivi almeno 2 lettere').max(100, 'Testo troppo lungo'),
+});
+
 export type RegisterInput = z.input<typeof registerSchema>;
 export type LoginInput = z.input<typeof loginSchema>;
 

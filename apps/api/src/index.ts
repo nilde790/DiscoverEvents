@@ -1,6 +1,7 @@
 import { createApp } from './app';
 import { loadConfig } from './config';
 import { openDatabase } from './db/database';
+import { createNominatimGeocoder } from './modules/places/geocoder';
 
 const config = loadConfig();
 
@@ -8,6 +9,7 @@ const app = createApp(openDatabase(config.dbPath), {
   sessionSecret: config.sessionSecret,
   secureCookies: config.isProduction,
   trustProxy: config.isProduction,
+  geocoder: createNominatimGeocoder({ userAgent: config.geocoderUserAgent }),
 });
 
 app.listen(config.port, () => {

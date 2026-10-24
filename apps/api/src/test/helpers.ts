@@ -20,8 +20,12 @@ export const fakeGeocoder: Geocoder = {
       : [],
 };
 
-export function startServer(options: Partial<AppOptions> = {}) {
-  const server = createApp(openDatabase(':memory:'), {
+/** Passando `db` più server condividono lo stesso database (es. per simulare un cambio di configurazione). */
+export function startServer(
+  options: Partial<AppOptions> = {},
+  db = openDatabase(':memory:', { seedDemoAdmin: options.demoAdminEnabled ?? true }),
+) {
+  const server = createApp(db, {
     sessionSecret: 'segreto-di-test',
     authAttemptsPerWindow: 1000,
     geocoder: fakeGeocoder,

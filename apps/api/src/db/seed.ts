@@ -85,7 +85,7 @@ function mulberry32(seed: number) {
   };
 }
 
-export function seed(db: DatabaseSync) {
+export function seed(db: DatabaseSync, { includeAdmin = true } = {}) {
   const rand = mulberry32(42);
   const pick = <T>(arr: readonly T[]) => arr[Math.floor(rand() * arr.length)];
   const categories = Object.keys(TEMPLATES) as EventCategory[];
@@ -96,7 +96,8 @@ export function seed(db: DatabaseSync) {
   const addUser = (name: string, email: string, role: string) =>
     Number(insertUser.run(name, email, passwordHash, role).lastInsertRowid);
 
-  addUser('Amministratore Demo', DEMO_ACCOUNTS.admin.email, 'admin');
+  // In produzione niente admin demo: la sua password è pubblica. Il vero admin si crea con admin:promote.
+  if (includeAdmin) addUser('Amministratore Demo', DEMO_ACCOUNTS.admin.email, 'admin');
   const organizerByCategory = {} as Record<EventCategory, number>;
   for (const o of ORGANIZERS) {
     const id = addUser(o.name, o.email, 'organizer');

@@ -9,3 +9,5 @@ export const DEMO_ACCOUNTS = {
   organizer: { email: 'techcommunity@example.com', label: 'Organizzatore' },
   admin: { email: 'admin@example.com', label: 'Amministratore' },
 } as const;
+
+export type DemoRole = keyof typeof DEMO_ACCOUNTS;

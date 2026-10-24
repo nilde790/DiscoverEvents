@@ -1,4 +1,5 @@
 import type { EventDetail, EventInput, EventSummary, OrganizerRequest, Place, User } from '@discoverevent/shared/types';
+import type { DemoRole } from '@discoverevent/shared/demo';
 import type { LoginInput, RegisterInput } from '@discoverevent/shared/validation';
 
 export class ApiError extends Error {
@@ -48,6 +49,7 @@ export const api = {
   login: (input: LoginInput) => request<SessionInfo>('/auth/login', 'POST', input),
   register: (input: RegisterInput) => request<SessionInfo>('/auth/register', 'POST', input),
   logout: () => request<void>('/auth/logout', 'POST'),
+  demoAccounts: () => request<{ roles: DemoRole[] }>('/auth/demo-accounts'),
 
   requestOrganizer: (message: string) => request<OrganizerRequest>('/organizer-requests', 'POST', { message }),
   adminRequests: (onlyPending: boolean) =>

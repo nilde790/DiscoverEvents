@@ -11,6 +11,7 @@ const envSchema = z
     SESSION_SECRET: z.string().optional(),
     DB_PATH: z.string().optional(),
     GEOCODER_USER_AGENT: z.string().min(1).default('DiscoverEvent/0.3 (progetto didattico)'),
+    DEMO_ADMIN_ENABLED: z.enum(['true', 'false']).optional(),
   })
   .superRefine((env, ctx) => {
     // Senza una chiave segreta robusta chiunque potrebbe falsificare i cookie di sessione: meglio non partire.
@@ -29,6 +30,8 @@ export interface Config {
   sessionSecret: string;
   dbPath?: string;
   geocoderUserAgent: string;
+  /** Account demo amministratore (password pubblica) attivo: di default sì in sviluppo, no in produzione. */
+  demoAdminEnabled: boolean;
 }
 
 /** Legge .env (se presente) e le variabili d'ambiente; si ferma con un messaggio chiaro se qualcosa non va. */
@@ -56,5 +59,6 @@ export function loadConfig(): Config {
     sessionSecret: env.SESSION_SECRET ?? DEV_SESSION_SECRET,
     dbPath: env.DB_PATH,
     geocoderUserAgent: env.GEOCODER_USER_AGENT,
+    demoAdminEnabled: env.DEMO_ADMIN_ENABLED ? env.DEMO_ADMIN_ENABLED === 'true' : env.NODE_ENV !== 'production',
   };
 }

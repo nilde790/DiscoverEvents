@@ -83,6 +83,8 @@ Nella pagina **Accedi** i pulsanti *Prova come partecipante / organizzatore / am
 | Organizzatore | `techcommunity@example.com` |
 | Amministratore | `admin@example.com` |
 
+L'amministratore demo esiste solo in sviluppo: in produzione (`NODE_ENV=production`) non può accedere, non viene creato su un database nuovo e il suo pulsante sparisce. Si può forzare con `DEMO_ADMIN_ENABLED` (vedi [`apps/api/.env.example`](apps/api/.env.example)).
+
 ### Configurazione
 
 Le impostazioni del server si leggono da variabili d'ambiente o dal file `apps/api/.env` (vedi [`apps/api/.env.example`](apps/api/.env.example)). In sviluppo funzionano i valori predefiniti; in produzione (`NODE_ENV=production`) è obbligatoria `SESSION_SECRET` e i cookie viaggiano solo su HTTPS.

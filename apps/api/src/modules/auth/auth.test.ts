@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { DEMO_ACCOUNTS } from '@discoverevent/shared/demo';
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '@discoverevent/shared/demo';
+import { openDatabase } from '../../db/database';
 import { Client, loginAs, startServer, validEvent } from '../../test/helpers';
 
 describe('registrazione e accesso', () => {
@@ -92,5 +93,46 @@ describe('registrazione e accesso', () => {
     assert.equal((await anonymous.call('/events')).status, 200);
     assert.equal((await anonymous.call('/events/1/favorite', 'PUT')).status, 401);
     assert.equal((await anonymous.call('/events', 'POST', validEvent())).status, 401);
+  });
+});
+
+describe('admin demo disattivato (produzione)', () => {
+  const login = (client: Client, email: string) =>
+    client.call('/auth/login', 'POST', { email, password: DEMO_PASSWORD });
+
+  test("su un database nuovo l'admin demo non viene creato e non compare tra i pulsanti", async () => {
+    const client = new Client(startServer({ demoAdminEnabled: false }));
+    assert.equal((await login(client, DEMO_ACCOUNTS.admin.email)).status, 401);
+    assert.deepEqual((await client.call('/auth/demo-accounts')).body.roles, ['participant', 'organizer']);
+  });
+
+  test("su un database esistente l'admin demo non può accedere, gli altri account demo sì", async () => {
+    // Database creato in sviluppo, quindi con l'admin demo, poi avviato in produzione.
+    const base = startServer({ demoAdminEnabled: false }, openDatabase(':memory:'));
+    const admin = await login(new Client(base), DEMO_ACCOUNTS.admin.email);
+    assert.equal(admin.status, 401);
+    assert.equal(admin.body.error, 'Email o password non corretti');
+    assert.equal((await login(new Client(base), DEMO_ACCOUNTS.participant.email)).status, 200);
+    assert.equal((await login(new Client(base), DEMO_ACCOUNTS.organizer.email)).status, 200);
+  });
+
+  test("una sessione dell'admin demo aperta prima del cambio non vale più", async () => {
+    // Due server sullo stesso database: prima e dopo il riavvio con la nuova configurazione.
+    const db = openDatabase(':memory:');
+    const before = new Client(startServer({}, db));
+    assert.equal((await login(before, DEMO_ACCOUNTS.admin.email)).status, 200);
+
+    const afterRestart = new Client(startServer({ demoAdminEnabled: false }, db));
+    afterRestart.cookie = before.cookie;
+    assert.equal((await afterRestart.call('/auth/me')).body.user, null);
+    assert.equal((await afterRestart.call('/admin/organizer-requests')).status, 401);
+  });
+
+  test('in sviluppo i tre account demo sono disponibili', async () => {
+    assert.deepEqual((await new Client().call('/auth/demo-accounts')).body.roles, [
+      'participant',
+      'organizer',
+      'admin',
+    ]);
   });
 });

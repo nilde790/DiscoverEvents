@@ -1,5 +1,5 @@
 import { useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router';
 import { ROLE_LABELS } from '@/lib/constants';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useSiteConfig } from '@/features/site-config/SiteConfigContext';

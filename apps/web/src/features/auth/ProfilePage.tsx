@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ROLE_LABELS } from '@/lib/constants';
 import { useAuth } from '@/features/auth/AuthContext';
 import { formatDate } from '@/lib/format';

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router';
 import { CATEGORIES, type EventInput } from '@discoverevent/shared/types';
 import { eventInputSchema, fieldErrors } from '@discoverevent/shared/validation';
 import { api, ApiError } from '@/lib/api';

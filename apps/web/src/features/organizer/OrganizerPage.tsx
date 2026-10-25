@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { registrationStatus } from '@discoverevent/shared/types';
 import { StatusBadge } from '@/features/events/components/EventBadges';
 import { useAuth } from '@/features/auth/AuthContext';

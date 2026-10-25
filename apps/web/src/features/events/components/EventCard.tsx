@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import type { EventSummary } from '@discoverevent/shared/types';
 import { categoryClass } from '@/lib/constants';
 import { formatDate, formatDistance, formatPrice } from '@/lib/format';

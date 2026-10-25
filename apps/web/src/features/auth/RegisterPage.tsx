@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import { fieldErrors, registerSchema } from '@discoverevent/shared/validation';
 import { ApiError } from '@/lib/api';
 import { Field } from '@/components/ui/Field';

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useSiteConfig } from '@/features/site-config/SiteConfigContext';
 
 /** Riga in fondo a ogni pagina: sottile, per non togliere spazio alla mappa. */

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import { DEMO_ACCOUNTS, DEMO_PASSWORD, type DemoRole } from '@discoverevent/shared/demo';
 import { fieldErrors, loginSchema } from '@discoverevent/shared/validation';
 import { api, ApiError } from '@/lib/api';

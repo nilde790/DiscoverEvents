@@ -6,7 +6,8 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/node_modules/**', 'apps/api/data/**'] },
+  // .claude/worktrees contiene le copie del progetto delle sessioni parallele: non sono codice di questo ramo.
+  { ignores: ['**/dist/**', '**/node_modules/**', 'apps/api/data/**', '.claude/**'] },
 
   js.configs.recommended,
   ...tseslint.configs.recommended,

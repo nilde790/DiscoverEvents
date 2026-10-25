@@ -4,3 +4,5 @@ package-lock.json
 apps/api/data
 # Documentazione: le tabelle Markdown sono allineate a mano, non vanno riformattate.
 *.md
+# Copie del progetto delle sessioni parallele di Claude Code.
+.claude

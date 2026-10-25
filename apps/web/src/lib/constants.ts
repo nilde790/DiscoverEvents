@@ -7,14 +7,11 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 import type { LatLng } from '@/lib/geo';
 
-export const CATEGORY_COLORS: Record<EventCategory, string> = {
-  Musica: '#7c3aed',
-  Sport: '#16a34a',
-  Arte: '#db2777',
-  Cibo: '#ea580c',
-  Teatro: '#0891b2',
-  Tech: '#2563eb',
-};
+/**
+ * Classe CSS di una categoria (es. `cat-musica`): imposta la variabile `--cat`
+ * con il colore definito in `styles/global.css`, usata da badge, chip, puntini e segnaposto.
+ */
+export const categoryClass = (category: EventCategory) => `cat-${category.toLowerCase()}`;
 
 export const STATUS_LABELS: Record<RegistrationStatus, string> = {
   open: 'Iscrizioni aperte',

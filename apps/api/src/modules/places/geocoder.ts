@@ -14,6 +14,8 @@ interface NominatimOptions {
   fetchFn?: typeof fetch;
   /** Pausa minima tra due richieste: le regole d'uso consentono al massimo 1 richiesta al secondo. */
   minIntervalMs?: number;
+  /** Dove scrivere la causa tecnica degli errori (di default il log del server); sostituibile nei test. */
+  logError?: (message: string) => void;
 }
 
 /** Solo i campi della risposta di Nominatim che usiamo. */
@@ -28,6 +30,23 @@ interface NominatimResult {
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const CACHE_MAX_ENTRIES = 500;
 const RESULTS_LIMIT = 5;
+const UNAVAILABLE = 'Ricerca città non disponibile: riprova tra poco';
+
+/**
+ * Causa tecnica di un errore di rete, da scrivere nel log (all'utente basta UNAVAILABLE).
+ * fetch() di Node riporta il motivo vero in `cause`: es. certificato non valido, DNS, connessione rifiutata.
+ */
+export function describeFetchError(err: unknown): string {
+  if (!(err instanceof Error)) return String(err);
+  if (err.name === 'TimeoutError') return 'nessuna risposta entro il tempo massimo (timeout)';
+  const cause = err.cause as { code?: string; message?: string } | undefined;
+  const detail = cause ? [cause.code, cause.message].filter(Boolean).join(' ') : err.message;
+  // Tipico di antivirus o proxy aziendali che ispezionano l'HTTPS con un certificato proprio.
+  const certificateHint = /CERT|UNABLE_TO_VERIFY|SELF_SIGNED/.test(cause?.code ?? '')
+    ? ' — se un antivirus o un proxy ispeziona le connessioni HTTPS, avvia Node con --use-system-ca'
+    : '';
+  return `${detail}${certificateHint}`;
+}
 
 /**
  * Geocoding con Nominatim (OpenStreetMap): gratuito e senza chiave, ma con regole d'uso precise.
@@ -39,6 +58,7 @@ export function createNominatimGeocoder({
   baseUrl = 'https://nominatim.openstreetmap.org',
   fetchFn = fetch,
   minIntervalMs = 1100,
+  logError = (message) => console.error(message),
 }: NominatimOptions): Geocoder {
   const cache = new Map<string, { at: number; places: Place[] }>();
   let queue: Promise<unknown> = Promise.resolve();
@@ -72,10 +92,15 @@ export function createNominatimGeocoder({
         headers: { 'User-Agent': userAgent },
         signal: AbortSignal.timeout(5000),
       });
-    } catch {
-      throw new HttpError(502, 'Ricerca città non disponibile: riprova tra poco');
+    } catch (err) {
+      // La città cercata non va nel log: basta la causa per capire il problema.
+      logError(`Ricerca città: Nominatim non raggiungibile: ${describeFetchError(err)}`);
+      throw new HttpError(502, UNAVAILABLE);
     }
-    if (!res.ok) throw new HttpError(502, 'Ricerca città non disponibile: riprova tra poco');
+    if (!res.ok) {
+      logError(`Ricerca città: Nominatim ha risposto ${res.status} ${res.statusText}`.trimEnd());
+      throw new HttpError(502, UNAVAILABLE);
+    }
 
     const results = (await res.json()) as NominatimResult[];
     const places = results.map((r) => {

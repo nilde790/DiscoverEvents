@@ -24,7 +24,7 @@ Su Windows, se `node` non è nel PATH della shell: `export PATH="/c/Program File
 **`packages/shared`** (`@discoverevent/shared`) — tipi (`types`), regole Zod (`validation`) e account demo (`demo`), usati **sia** dal frontend **sia** dal backend. Un campo nuovo di un evento si aggiunge qui per primo.
 
 **`apps/api/src`** — organizzato per **funzionalità**:
-- `modules/<nome>/` — per ogni funzionalità (`auth`, `events`, `organizer-requests`): `*.routes.ts` (rotte e permessi), `*.repository.ts` (**tutto l'SQL**, le rotte non scrivono query), `*.test.ts`.
+- `modules/<nome>/` — per ogni funzionalità (`auth`, `events`, `organizer-requests`, `places`, `site-config`, `demo-reset`): `*.routes.ts` (rotte e permessi), `*.repository.ts` (**tutto l'SQL**, le rotte non scrivono query), `*.test.ts`.
 - `middleware/` — sessione, utente corrente (`currentUser`, `requireRole`), gestione errori.
 - `lib/http.ts` — `HttpError(status, messaggio, campi?)`, `parseBody`, `idParam`, `asyncRoute`.
 - `db/` — apertura e migrazioni (`database.ts`), schema (`schema.ts`), dati demo (`seed.ts`), sessioni (`session-store.ts`).
@@ -36,7 +36,7 @@ Su Windows, se `node` non è nel PATH della shell: `export PATH="/c/Program File
 - `components/ui/` e `components/layout/` — pezzi generici (Field, Toast, Header).
 - `lib/` — client API (un metodo per ogni rotta), formattazione, geo, costanti.
 - `app/` — rotte (`App.tsx`) e provider (`AppProviders.tsx`).
-- Stato globale diviso in tre contesti: `useAuth()`, `useEvents()`, `useToast()`.
+- Stato globale diviso in contesti: `useAuth()`, `useEvents()`, `useToast()` e `useSiteConfig()` (configurazione del sito letta dal server all'avvio).
 
 ## Regole
 
@@ -65,6 +65,8 @@ Su Windows, se `node` non è nel PATH della shell: `export PATH="/c/Program File
 
 - **Login:** registrazione con email e password nell'app (bcryptjs), sessioni con cookie `httpOnly` + `SameSite=Lax` (express-session), limite ai tentativi (express-rate-limit).
 - **Ruoli:** `participant`, `organizer`, `admin`. Si nasce partecipanti; chi vuole organizzare (alla registrazione o dal profilo) invia una richiesta che un amministratore approva o rifiuta.
-- **Account demo:** password pubblica in `packages/shared/src/demo.ts`, usati dai pulsanti "Prova come…" nella pagina di accesso. In produzione chiunque può entrare come admin demo: da rivedere prima del deploy pubblico.
+- **Account demo:** password pubblica in `packages/shared/src/demo.ts`, usati dai pulsanti "Prova come…" nella pagina di accesso. L'admin demo è attivo in sviluppo e in modalità demo, spento in produzione senza modalità demo (`DEMO_ADMIN_ENABLED` lo forza).
+- **Modalità demo (`DEMO_MODE=true`, sito pubblico):** registrazione bloccata dal server (403), solo account demo, dati riportati al seed ogni notte alle 4 ora italiana (`modules/demo-reset`, un timer nel server: usare una sola istanza). Scelta di minimizzazione dei dati: online nessuno lascia dati personali reali. Spenta di default, così in locale tutto funziona come prima.
+- **Configurazione a runtime:** `GET /api/config` (`modules/site-config`) espone `demoMode` e titolare/email della privacy (`PRIVACY_CONTROLLER_NAME`, `PRIVACY_CONTACT_EMAIL`); il frontend la legge all'avvio con `useSiteConfig()`. Dati personali del titolare mai nel codice.
 - **Non ancora presenti:** verifica dell'email, recupero password (richiedono l'invio di email).
 - **Eventi:** oggi solo dati demo a Roma. Previsto un importatore da fonti esterne (Ticketmaster Discovery API, da verificare la copertura in Italia) insieme agli eventi creati dagli organizzatori.

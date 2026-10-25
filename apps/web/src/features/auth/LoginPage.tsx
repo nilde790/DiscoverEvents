@@ -5,10 +5,12 @@ import { fieldErrors, loginSchema } from '@discoverevent/shared/validation';
 import { api, ApiError } from '@/lib/api';
 import { Field } from '@/components/ui/Field';
 import { useAuth } from '@/features/auth/AuthContext';
+import { useSiteConfig } from '@/features/site-config/SiteConfigContext';
 import { returnPath } from '@/lib/navigation';
 
 export function LoginPage() {
   const { login, currentUser } = useAuth();
+  const { demoMode } = useSiteConfig().config;
   const navigate = useNavigate();
   const location = useLocation();
   const goTo = returnPath(location.search);
@@ -53,6 +55,12 @@ export function LoginPage() {
     <div className="page auth-page">
       <form className="auth-card" onSubmit={onSubmit} noValidate>
         <h1>Accedi</h1>
+        {demoMode && (
+          <p className="notice">
+            Questo sito è una <strong>dimostrazione</strong>: la registrazione è disattivata e si entra solo con gli
+            account dimostrativi. I dati tornano quelli iniziali ogni notte.
+          </p>
+        )}
         <Field label="Email" error={errors.email}>
           <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>
@@ -68,15 +76,21 @@ export function LoginPage() {
         <button type="submit" className="btn" disabled={busy}>
           {busy ? 'Accesso…' : 'Accedi'}
         </button>
-        <p className="muted">
-          Non hai un account? <Link to={`/registrati${location.search}`}>Registrati</Link>
-        </p>
+        {!demoMode && (
+          <p className="muted">
+            Non hai un account? <Link to={`/registrati${location.search}`}>Registrati</Link>
+          </p>
+        )}
       </form>
 
       {demoRoles.length > 0 && (
         <section className="auth-card demo-box">
-          <h2>Vuoi solo provare l'app?</h2>
-          <p className="muted">Entra con un account dimostrativo, senza registrarti.</p>
+          <h2>{demoMode ? 'Scegli un account demo' : "Vuoi solo provare l'app?"}</h2>
+          <p className="muted">
+            {demoMode
+              ? 'Persone inventate, condivise con tutti i visitatori: non scrivere dati personali reali.'
+              : 'Entra con un account dimostrativo, senza registrarti.'}
+          </p>
           <div className="demo-buttons">
             {demoRoles
               .map((role) => DEMO_ACCOUNTS[role])

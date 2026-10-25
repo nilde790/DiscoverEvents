@@ -1,4 +1,12 @@
-import type { EventDetail, EventInput, EventSummary, OrganizerRequest, Place, User } from '@discoverevent/shared/types';
+import type {
+  EventDetail,
+  EventInput,
+  EventSummary,
+  OrganizerRequest,
+  Place,
+  PublicConfig,
+  User,
+} from '@discoverevent/shared/types';
 import type { DemoRole } from '@discoverevent/shared/demo';
 import type { LoginInput, RegisterInput } from '@discoverevent/shared/validation';
 
@@ -45,6 +53,8 @@ async function request<T>(path: string, method = 'GET', body?: unknown): Promise
 
 /** Client dell'API: un metodo per ogni rotta del server. */
 export const api = {
+  config: () => request<PublicConfig>('/config'),
+
   me: () => request<SessionInfo>('/auth/me'),
   login: (input: LoginInput) => request<SessionInfo>('/auth/login', 'POST', input),
   register: (input: RegisterInput) => request<SessionInfo>('/auth/register', 'POST', input),

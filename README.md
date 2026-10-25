@@ -83,7 +83,23 @@ Nella pagina **Accedi** i pulsanti *Prova come partecipante / organizzatore / am
 | Organizzatore | `techcommunity@example.com` |
 | Amministratore | `admin@example.com` |
 
-L'amministratore demo esiste solo in sviluppo: in produzione (`NODE_ENV=production`) non può accedere, non viene creato su un database nuovo e il suo pulsante sparisce. Si può forzare con `DEMO_ADMIN_ENABLED` (vedi [`apps/api/.env.example`](apps/api/.env.example)).
+L'amministratore demo è attivo in sviluppo e in modalità demo; in produzione senza modalità demo (`NODE_ENV=production`) non può accedere, non viene creato su un database nuovo e il suo pulsante sparisce. Si può forzare con `DEMO_ADMIN_ENABLED` (vedi [`apps/api/.env.example`](apps/api/.env.example)).
+
+### Modalità demo (sito pubblico)
+
+Il sito pubblico gira con `DEMO_MODE=true`, per non raccogliere dati personali reali (minimizzazione dei dati, GDPR):
+
+- la **registrazione è disattivata**: il server risponde 403 e la pagina *Registrati* rimanda agli account demo;
+- si entra solo con i **tre account demo**, amministratore compreso;
+- **ogni notte alle 4** (ora italiana) il database torna ai dati demo iniziali e tutti escono dall'account.
+
+L'azzeramento è un timer dentro il server, senza librerie in più: ogni 5 minuti controlla se sono passate le 4 e, in una transazione, svuota le tabelle e rilancia i dati demo. Limiti: se il server è spento alle 4 l'azzeramento salta fino alla notte dopo (oppure avviene al riavvio, se il disco dell'hosting non è permanente); con più copie del server ognuna azzererebbe il database per conto suo, quindi va usata una sola istanza (come già richiede SQLite).
+
+Senza `DEMO_MODE` (in locale, per esempio) tutto funziona come prima, registrazione compresa.
+
+### Informativa privacy
+
+Titolare ed email della pagina *Privacy* non sono scritti nel codice: si impostano sull'hosting con `PRIVACY_CONTROLLER_NAME` e `PRIVACY_CONTACT_EMAIL`. Il frontend li legge all'avvio da `GET /api/config`, quindi si cambiano senza ricompilare. Se mancano, la pagina mostra una frase neutra.
 
 ### Configurazione
 
@@ -122,7 +138,9 @@ DiscoverEvent/
 │   │       ├── modules/          Una cartella per funzionalità: rotte, query SQL e test
 │   │       │   ├── auth/
 │   │       │   ├── events/
-│   │       │   └── organizer-requests/
+│   │       │   ├── organizer-requests/
+│   │       │   ├── site-config/  GET /api/config (modalità demo, dati privacy)
+│   │       │   └── demo-reset/   Azzeramento notturno dei dati demo
 │   │       ├── middleware/       Sessione, utente corrente, gestione errori
 │   │       ├── db/               Schema, migrazioni, dati demo, sessioni
 │   │       └── config.ts         Variabili d'ambiente validate all'avvio
@@ -132,7 +150,8 @@ DiscoverEvent/
 │           │   ├── auth/
 │           │   ├── events/
 │           │   ├── organizer/
-│           │   └── admin/
+│           │   ├── admin/
+│           │   └── site-config/  Configurazione del sito letta all'avvio
 │           ├── components/       Componenti generici (campi, notifiche, intestazione)
 │           └── lib/              Client API, formattazione, utilità
 └── packages/
@@ -145,7 +164,8 @@ In sviluppo Vite inoltra le chiamate `/api` al server Express, quindi frontend e
 
 | Metodo | Percorso | Descrizione |
 |---|---|---|
-| POST | `/api/auth/register` | Crea un account e accede |
+| GET | `/api/config` | Configurazione pubblica: modalità demo, titolare ed email della privacy |
+| POST | `/api/auth/register` | Crea un account e accede (403 in modalità demo) |
 | POST | `/api/auth/login` | Accesso con email e password |
 | POST | `/api/auth/logout` | Uscita |
 | GET | `/api/auth/me` | Utente corrente e stato della sua richiesta organizzatore |

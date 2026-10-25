@@ -8,8 +8,8 @@ export type EventWithDistance = EventSummary & { distanceKm: number };
 
 /**
  * Sceglie il centro della ricerca e calcola la distanza di ogni evento.
- * Priorità: la città cercata dall'utente; poi la posizione reale, se ci sono eventi nei dintorni;
- * altrimenti Roma, dove si trovano i dati demo.
+ * Priorità: la città cercata dall'utente; poi la posizione reale, anche se nei dintorni non ci sono eventi
+ * (altrimenti sembrerebbe che la posizione non funzioni); Roma solo se la posizione non è disponibile.
  */
 export function useNearbyEvents(events: EventSummary[], place: Place | null) {
   const geo = useGeolocation();
@@ -21,22 +21,21 @@ export function useNearbyEvents(events: EventSummary[], place: Place | null) {
     let from = 'dal centro di Roma';
     /** Nome del centro mostrato sopra la mappa. */
     let label = 'Roma';
+    const noneNear = (c: LatLng) => events.length > 0 && !events.some((e) => distanceKm(c, e) <= MAX_RADIUS_KM);
 
     if (place) {
       center = place;
       from = `da ${place.name}`;
       label = place.label;
-      if (events.length > 0 && !events.some((e) => distanceKm(place, e) <= MAX_RADIUS_KM)) {
-        notice = `Ancora nessun evento entro ${MAX_RADIUS_KM} km da ${place.name}.`;
+      if (noneNear(place)) {
+        notice = `Ancora nessun evento entro ${MAX_RADIUS_KM} km da ${place.name}: cerca un’altra città qui sopra.`;
       }
     } else if (geo.status === 'ok') {
-      const anyNearby = events.some((e) => distanceKm(geo.position, e) <= MAX_RADIUS_KM);
-      if (anyNearby || events.length === 0) {
-        center = geo.position;
-        from = 'da te';
-        label = 'La tua posizione';
-      } else {
-        notice = 'Non ci sono eventi vicino a te: ti mostro quelli di Roma. Puoi cercare un’altra città qui sopra.';
+      center = geo.position;
+      from = 'da te';
+      label = 'La tua posizione';
+      if (noneNear(geo.position)) {
+        notice = `Ancora nessun evento entro ${MAX_RADIUS_KM} km da te: cerca un’altra città qui sopra.`;
       }
     } else if (geo.status === 'denied') {
       notice = `${geo.error}: ti mostro gli eventi di Roma. Puoi cercare la tua città qui sopra.`;

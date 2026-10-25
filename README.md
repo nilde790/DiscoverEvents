@@ -62,7 +62,7 @@ npm run dev
 ```
 
 L'app è disponibile su http://localhost:5173 e l'API su http://localhost:3001/api.
-Al primo avvio il database viene creato e popolato con dati dimostrativi nella zona di Roma.
+Al primo avvio il database viene creato e popolato con dati dimostrativi in sei città italiane (Roma, Milano, Torino, Bologna, Napoli, Firenze).
 
 | Comando | Cosa fa |
 |---|---|

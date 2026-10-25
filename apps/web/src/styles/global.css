@@ -1289,29 +1289,54 @@ textarea:focus-visible {
 .footer {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  align-items: center;
+  gap: var(--space-3);
   flex-wrap: wrap;
-  padding: 4px 16px;
-  background: var(--panel);
+  padding: 2px var(--space-4);
+  background: var(--surface);
   border-top: 1px solid var(--border);
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-xs);
+}
+/* Riga sottile, ma il link resta comodo da toccare (almeno 24 px). */
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 var(--space-1);
+  border-radius: 4px;
+  color: var(--primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+.footer a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* Testo lungo da leggere: righe più ariose e sezioni ben separate. */
+.legal {
+  gap: var(--space-6);
 }
 .legal section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
 }
 .legal p,
 .legal ul {
   margin: 0;
-  line-height: 1.55;
+  line-height: 1.7;
 }
 .legal ul {
-  padding-left: 20px;
+  padding-left: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
+}
+.legal li::marker {
+  color: var(--primary);
 }
 
 /* ---------- Schermi stretti ---------- */

@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import type { DatabaseSync } from 'node:sqlite';
+import { DEMO_ACCOUNTS, type DemoRole } from '@discoverevent/shared/demo';
 import { loginSchema, registerSchema } from '@discoverevent/shared/validation';
 import { transaction } from '../../db/database';
 import { asyncRoute, HttpError, parseBody } from '../../lib/http';
@@ -18,10 +19,12 @@ interface AuthDeps {
   requests: OrganizerRequestsRepository;
   /** Tentativi di login/registrazione consentiti per IP ogni 15 minuti. */
   attemptsPerWindow: number;
+  /** Account che non possono accedere (es. l'admin demo in produzione). */
+  isDisabledAccount: (email: string) => boolean;
 }
 
 /** Registrazione, accesso, uscita e utente corrente: /api/auth/... */
-export function createAuthRouter({ db, users, requests, attemptsPerWindow }: AuthDeps) {
+export function createAuthRouter({ db, users, requests, attemptsPerWindow, isDisabledAccount }: AuthDeps) {
   const router = Router();
 
   const authLimiter = rateLimit({
@@ -45,6 +48,14 @@ export function createAuthRouter({ db, users, requests, attemptsPerWindow }: Aut
   router.get('/auth/me', (_req, res) => {
     const user = optionalUser(res);
     res.json(user ? sessionInfo(user.id) : { user: null, organizerRequest: null });
+  });
+
+  // Quali pulsanti "Prova come…" mostrare: lo decide il server, il client non ha costanti sue.
+  router.get('/auth/demo-accounts', (_req, res) => {
+    const roles = (Object.keys(DEMO_ACCOUNTS) as DemoRole[]).filter(
+      (role) => !isDisabledAccount(DEMO_ACCOUNTS[role].email),
+    );
+    res.json({ roles });
   });
 
   router.post(
@@ -77,7 +88,10 @@ export function createAuthRouter({ db, users, requests, attemptsPerWindow }: Aut
       const credentials = users.getCredentials(input.email);
       const valid = await bcrypt.compare(input.password, credentials?.passwordHash ?? dummyHash);
       // Stesso messaggio per email sconosciuta e password sbagliata: non si rivela quale dei due è errato.
-      if (!credentials || !valid) throw new HttpError(401, 'Email o password non corretti');
+      // Un account disattivato riceve lo stesso errore: dall'esterno sembra semplicemente inesistente.
+      if (!credentials || !valid || isDisabledAccount(input.email)) {
+        throw new HttpError(401, 'Email o password non corretti');
+      }
       await startSession(req, credentials.id);
       res.json(sessionInfo(credentials.id));
     }),

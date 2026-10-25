@@ -66,6 +66,10 @@ export function RegisterPage() {
         )}
 
         {errors.form && <p className="notice error">{errors.form}</p>}
+        <p className="muted">
+          Creando l&apos;account confermi di aver letto l&apos;
+          <Link to="/privacy">informativa sulla privacy</Link>, che spiega quali dati salviamo e perché.
+        </p>
         <button type="submit" className="btn" disabled={busy}>
           {busy ? 'Creazione…' : 'Crea account'}
         </button>

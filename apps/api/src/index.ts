@@ -5,11 +5,12 @@ import { createNominatimGeocoder } from './modules/places/geocoder';
 
 const config = loadConfig();
 
-const app = createApp(openDatabase(config.dbPath), {
+const app = createApp(openDatabase(config.dbPath, { seedDemoAdmin: config.demoAdminEnabled }), {
   sessionSecret: config.sessionSecret,
   secureCookies: config.isProduction,
   trustProxy: config.isProduction,
   geocoder: createNominatimGeocoder({ userAgent: config.geocoderUserAgent }),
+  demoAdminEnabled: config.demoAdminEnabled,
 });
 
 app.listen(config.port, () => {

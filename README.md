@@ -83,9 +83,24 @@ Nella pagina **Accedi** i pulsanti *Prova come partecipante / organizzatore / am
 | Organizzatore | `techcommunity@example.com` |
 | Amministratore | `admin@example.com` |
 
+L'amministratore demo esiste solo in sviluppo: in produzione (`NODE_ENV=production`) non può accedere, non viene creato su un database nuovo e il suo pulsante sparisce. Si può forzare con `DEMO_ADMIN_ENABLED` (vedi [`apps/api/.env.example`](apps/api/.env.example)).
+
 ### Configurazione
 
 Le impostazioni del server si leggono da variabili d'ambiente o dal file `apps/api/.env` (vedi [`apps/api/.env.example`](apps/api/.env.example)). In sviluppo funzionano i valori predefiniti; in produzione (`NODE_ENV=production`) è obbligatoria `SESSION_SECRET` e i cookie viaggiano solo su HTTPS.
+
+### Creare il primo amministratore
+
+In produzione l'amministratore demo è disattivato. Per avere un vero amministratore:
+
+1. registra normalmente l'account dall'app (pagina **Registrati**), con la tua password;
+2. sul server, dalla radice del progetto, esegui:
+
+   ```bash
+   npm run admin:promote -w @discoverevent/api -- tua.email@esempio.it
+   ```
+
+Il comando usa lo stesso database del server (`DB_PATH`), non crea account e non chiede né salva password: cambia solo il ruolo di un utente esistente. Se l'email non è registrata lo dice e non modifica nulla.
 
 ### Sicurezza
 

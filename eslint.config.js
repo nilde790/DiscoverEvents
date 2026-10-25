@@ -21,7 +21,7 @@ export default tseslint.config(
 
   // Backend e file di configurazione: codice che gira in Node.js.
   {
-    files: ['apps/api/**/*.ts', '**/*.config.{js,ts}'],
+    files: ['apps/api/**/*.ts', '**/*.config.{js,ts}', 'apps/web/scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
   },
 

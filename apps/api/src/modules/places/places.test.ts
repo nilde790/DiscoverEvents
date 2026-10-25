@@ -76,10 +76,43 @@ describe('geocoder Nominatim', () => {
     assert.equal((await geocoder.search('Bologna')).length, 1);
   });
 
-  test('una risposta di errore del servizio diventa un 502', async () => {
+  test('una risposta di errore del servizio diventa un 502 e lo stato finisce nel log', async () => {
     const { fn } = fakeFetch({ error: 'rate limited' }, 429);
-    const geocoder = createNominatimGeocoder({ userAgent: 'test', fetchFn: fn, minIntervalMs: 0 });
+    const logs: string[] = [];
+    const geocoder = createNominatimGeocoder({
+      userAgent: 'test',
+      fetchFn: fn,
+      minIntervalMs: 0,
+      logError: (m) => logs.push(m),
+    });
     await assert.rejects(geocoder.search('Roma'), (err) => err instanceof HttpError && err.status === 502);
+    assert.match(logs[0], /429/);
+  });
+
+  test('se la connessione fallisce, il log riporta la causa vera ma non la città cercata', async () => {
+    // Come fa fetch() di Node: l'errore generico "fetch failed" ha il motivo reale in `cause`.
+    const certificateError = Object.assign(new Error('unable to verify the first certificate'), {
+      code: 'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+    });
+    const fn = (async () => {
+      throw new TypeError('fetch failed', { cause: certificateError });
+    }) as typeof fetch;
+    const logs: string[] = [];
+    const geocoder = createNominatimGeocoder({
+      userAgent: 'test',
+      fetchFn: fn,
+      minIntervalMs: 0,
+      logError: (m) => logs.push(m),
+    });
+
+    await assert.rejects(
+      geocoder.search('Ravenna'),
+      (err) => err instanceof HttpError && err.status === 502 && /non disponibile/.test(err.message),
+    );
+    assert.equal(logs.length, 1);
+    assert.match(logs[0], /UNABLE_TO_VERIFY_LEAF_SIGNATURE/);
+    assert.match(logs[0], /--use-system-ca/);
+    assert.doesNotMatch(logs[0], /Ravenna/i);
   });
 
   test('tra due richieste al servizio passa almeno l’intervallo minimo', async () => {

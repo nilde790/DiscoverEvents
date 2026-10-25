@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { EventSummary } from '@discoverevent/shared/types';
+import { categoryClass } from '@/lib/constants';
 import { formatDate, formatDistance, formatPrice } from '@/lib/format';
 import { Capacity } from './Capacity';
 import { EventActions } from './EventActions';
@@ -12,7 +13,7 @@ interface Props {
 
 export function EventCard({ event, distanceKm }: Props) {
   return (
-    <article className="card">
+    <article className={`card ${categoryClass(event.category)}`}>
       <div className="card-top">
         <CategoryBadge event={event} />
         <StatusBadge event={event} />

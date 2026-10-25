@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet';
 import type { EventSummary } from '@discoverevent/shared/types';
-import { CATEGORY_COLORS } from '@/lib/constants';
+import { categoryClass } from '@/lib/constants';
 import type { LatLng } from '@/lib/geo';
 
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -22,7 +22,10 @@ function FlyTo({ target }: { target: LatLng | null }) {
   const lng = target?.lng;
   // Dipende dalle coordinate, non dall'oggetto: aggiungere ai preferiti non deve far ripartire l'animazione.
   useEffect(() => {
-    if (lat !== undefined && lng !== undefined) map.flyTo([lat, lng], Math.max(map.getZoom(), 14), { duration: 0.6 });
+    if (lat === undefined || lng === undefined) return;
+    // Con "riduci movimento" attivo nel sistema la mappa salta sull'evento senza volo animato.
+    const animate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    map.flyTo([lat, lng], Math.max(map.getZoom(), 14), { duration: 0.6, animate });
   }, [lat, lng, map]);
   return null;
 }
@@ -56,18 +59,29 @@ export function MapView({ center, radiusKm, events, selectedId, onSelect }: Prop
         <Tooltip>Centro della ricerca</Tooltip>
       </CircleMarker>
 
+      {selected && (
+        <CircleMarker
+          // Leaflet applica la classe solo alla creazione: la chiave ricrea l'alone se cambia evento o categoria.
+          key={`halo-${selected.id}-${selected.category}`}
+          center={[selected.lat, selected.lng]}
+          radius={11}
+          interactive={false}
+          pathOptions={{ className: `marker-halo ${categoryClass(selected.category)}` }}
+        />
+      )}
+
       {events.map((e) => {
         const isSelected = e.id === selectedId;
         return (
           <CircleMarker
-            key={e.id}
+            // Il colore arriva dalla classe CSS della categoria, che Leaflet applica solo alla creazione.
+            key={`${e.id}-${e.category}`}
             center={[e.lat, e.lng]}
             radius={isSelected ? 11 : 7}
             pathOptions={{
+              className: `event-marker ${categoryClass(e.category)}`,
               color: isSelected ? '#0f172a' : '#fff',
               weight: isSelected ? 3 : 1.5,
-              fillColor: CATEGORY_COLORS[e.category],
-              fillOpacity: 0.9,
             }}
             eventHandlers={{ click: () => onSelect(e.id) }}
           >
@@ -95,7 +109,7 @@ export function LocationMap({ value, onChange }: { value: LatLng; onChange?: (p:
       <CircleMarker
         center={[value.lat, value.lng]}
         radius={10}
-        pathOptions={{ color: '#fff', weight: 3, fillColor: '#2563eb', fillOpacity: 1 }}
+        pathOptions={{ color: '#fff', weight: 3, fillColor: '#4f46e5', fillOpacity: 1 }}
       />
       {onChange && <ClickToPick onPick={onChange} />}
     </MapContainer>

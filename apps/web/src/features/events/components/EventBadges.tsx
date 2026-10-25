@@ -1,12 +1,8 @@
 import { registrationStatus, type EventSummary } from '@discoverevent/shared/types';
-import { CATEGORY_COLORS, STATUS_LABELS } from '@/lib/constants';
+import { categoryClass, STATUS_LABELS } from '@/lib/constants';
 
 export function CategoryBadge({ event }: { event: EventSummary }) {
-  return (
-    <span className="badge" style={{ background: CATEGORY_COLORS[event.category] }}>
-      {event.category}
-    </span>
-  );
+  return <span className={`badge ${categoryClass(event.category)}`}>{event.category}</span>;
 }
 
 export function StatusBadge({ event }: { event: EventSummary }) {

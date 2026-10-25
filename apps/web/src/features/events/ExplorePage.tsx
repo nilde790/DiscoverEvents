@@ -6,7 +6,7 @@ import { EventActions } from '@/features/events/components/EventActions';
 import { CategoryBadge, StatusBadge } from '@/features/events/components/EventBadges';
 import { MapView } from '@/features/events/components/MapView';
 import { SearchFilters } from '@/features/events/components/SearchFilters';
-import { CATEGORY_COLORS, MAX_RADIUS_KM } from '@/lib/constants';
+import { categoryClass, MAX_RADIUS_KM } from '@/lib/constants';
 import { useEvents } from '@/features/events/EventsContext';
 import { useEventFilters } from '@/features/events/hooks/useEventFilters';
 import { useNearbyEvents } from '@/features/events/hooks/useNearbyEvents';
@@ -80,7 +80,8 @@ export function ExplorePage() {
           </div>
 
           {selected ? (
-            <article className="detail">
+            // La chiave fa ripartire l'animazione di comparsa a ogni nuova selezione.
+            <article className="detail" key={selected.id}>
               <div className="card-top">
                 <CategoryBadge event={selected} />
                 <StatusBadge event={selected} />
@@ -118,7 +119,7 @@ export function ExplorePage() {
                   className={e.id === selectedId ? 'active' : ''}
                   onClick={() => setSelectedId(e.id)}
                 >
-                  <span className="dot" style={{ background: CATEGORY_COLORS[e.category] }} />
+                  <span className={`dot ${categoryClass(e.category)}`} />
                   <span className="list-title">
                     {e.isFavorite && '★ '}
                     {e.title}

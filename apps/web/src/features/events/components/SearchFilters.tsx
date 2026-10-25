@@ -1,6 +1,6 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { CATEGORIES } from '@discoverevent/shared/types';
-import { CATEGORY_COLORS } from '@/lib/constants';
+import { categoryClass } from '@/lib/constants';
 import type { EventFiltersState } from '@/features/events/hooks/useEventFilters';
 
 interface Props {
@@ -27,8 +27,7 @@ export function SearchFilters({ filters, children }: Props) {
             <button
               key={c}
               type="button"
-              className={`chip ${active ? 'active' : ''}`}
-              style={{ '--chip-color': CATEGORY_COLORS[c] } as CSSProperties}
+              className={`chip ${categoryClass(c)} ${active ? 'active' : ''}`}
               aria-pressed={active}
               onClick={() => filters.toggleCategory(c)}
             >

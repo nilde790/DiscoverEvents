@@ -6,7 +6,7 @@ import { SCHEMA, SCHEMA_VERSION } from './schema';
 import { seed } from './seed';
 
 // apps/api/data/discoverevent.db, indipendente dalla cartella da cui si avvia il server.
-const DEFAULT_DB_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'data', 'discoverevent.db');
+export const DEFAULT_DB_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'data', 'discoverevent.db');
 
 export interface OpenDatabaseOptions {
   /** Crea anche l'amministratore demo quando il database nuovo viene popolato (no in produzione). */

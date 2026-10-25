@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '@discoverevent/shared/demo';
 import { openDatabase } from '../../db/database';
+import { createUsersRepository } from './users.repository';
 import { Client, loginAs, startServer, validEvent } from '../../test/helpers';
 
 describe('registrazione e accesso', () => {
@@ -134,5 +135,24 @@ describe('admin demo disattivato (produzione)', () => {
       'organizer',
       'admin',
     ]);
+  });
+});
+
+describe('promozione ad amministratore (scripts/promote-admin.ts)', () => {
+  const users = createUsersRepository(openDatabase(':memory:'));
+
+  test('un utente registrato diventa amministratore', () => {
+    const result = users.promoteToAdmin(DEMO_ACCOUNTS.participant.email);
+    assert.ok(result.outcome === 'promoted');
+    assert.equal(users.getUser(result.user.id)?.role, 'admin');
+  });
+
+  test('chi è già amministratore resta tale senza errori', () => {
+    assert.equal(users.promoteToAdmin(DEMO_ACCOUNTS.admin.email).outcome, 'already-admin');
+  });
+
+  test("un'email non registrata non crea nessun account", () => {
+    assert.equal(users.promoteToAdmin('sconosciuto@example.com').outcome, 'not-found');
+    assert.equal(users.emailExists('sconosciuto@example.com'), false);
   });
 });

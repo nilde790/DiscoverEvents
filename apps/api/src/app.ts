@@ -1,6 +1,7 @@
 import express from 'express';
 import type { DatabaseSync } from 'node:sqlite';
 import { DEMO_ACCOUNTS } from '@discoverevent/shared/demo';
+import type { PublicConfig } from '@discoverevent/shared/types';
 import { loadCurrentUser } from './middleware/auth';
 import { errorHandler, notFound } from './middleware/error-handler';
 import { sessionMiddleware } from './middleware/session';
@@ -12,6 +13,7 @@ import { createOrganizerRequestsRepository } from './modules/organizer-requests/
 import { createOrganizerRequestsRouter } from './modules/organizer-requests/organizer-requests.routes';
 import type { Geocoder } from './modules/places/geocoder';
 import { createPlacesRouter } from './modules/places/places.routes';
+import { createSiteConfigRouter } from './modules/site-config/site-config.routes';
 
 export interface AppOptions {
   /** Chiave con cui vengono firmati i cookie di sessione. In produzione arriva da SESSION_SECRET. */
@@ -26,6 +28,10 @@ export interface AppOptions {
   geocoder: Geocoder;
   /** Account demo amministratore utilizzabile (password pubblica): false in produzione. Default true. */
   demoAdminEnabled?: boolean;
+  /** Modalità demo: registrazione disattivata, si entra solo con gli account demo. Default false. */
+  demoMode?: boolean;
+  /** Titolare ed email per l'informativa privacy, esposti da GET /api/config. */
+  privacy?: PublicConfig['privacy'];
 }
 
 /** Monta l'applicazione: middleware comuni, poi le rotte di ogni modulo, poi la gestione degli errori. */
@@ -37,6 +43,7 @@ export function createApp(db: DatabaseSync, options: AppOptions) {
   // Unico punto che decide quali account non possono entrare: usato dal login e dalla sessione.
   const demoAdminEnabled = options.demoAdminEnabled ?? true;
   const isDisabledAccount = (email: string) => !demoAdminEnabled && email === DEMO_ACCOUNTS.admin.email;
+  const demoMode = options.demoMode ?? false;
 
   const app = express();
   if (options.trustProxy) app.set('trust proxy', 1);
@@ -49,12 +56,20 @@ export function createApp(db: DatabaseSync, options: AppOptions) {
   });
   app.use(
     '/api',
+    createSiteConfigRouter({
+      demoMode,
+      privacy: options.privacy ?? { controllerName: null, contactEmail: null },
+    }),
+  );
+  app.use(
+    '/api',
     createAuthRouter({
       db,
       users,
       requests,
       attemptsPerWindow: options.authAttemptsPerWindow ?? 10,
       isDisabledAccount,
+      registrationEnabled: !demoMode,
     }),
   );
   app.use('/api', createOrganizerRequestsRouter({ db, users, requests }));

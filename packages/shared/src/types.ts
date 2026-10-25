@@ -85,3 +85,14 @@ export function registrationStatus(
   if (e.registeredCount >= e.capacity * ALMOST_FULL_RATIO) return 'almost-full';
   return 'open';
 }
+
+/** Configurazione pubblica del sito, decisa sull'hosting e letta dal frontend all'avvio (GET /api/config). */
+export interface PublicConfig {
+  /** Sito dimostrativo: registrazione disattivata, solo account demo, dati azzerati ogni notte. */
+  demoMode: boolean;
+  /** Titolare del trattamento e contatto per la privacy; null se non impostati sull'hosting. */
+  privacy: {
+    controllerName: string | null;
+    contactEmail: string | null;
+  };
+}

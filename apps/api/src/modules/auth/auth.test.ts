@@ -156,3 +156,34 @@ describe('promozione ad amministratore (scripts/promote-admin.ts)', () => {
     assert.equal(users.emailExists('sconosciuto@example.com'), false);
   });
 });
+
+describe('modalità demo', () => {
+  const newUser = { name: 'Persona Reale', email: 'persona.reale@example.com', password: 'password-sicura' };
+
+  test('la registrazione è bloccata dal server e non crea account', async () => {
+    const client = new Client(startServer({ demoMode: true }));
+    const res = await client.call('/auth/register', 'POST', newUser);
+    assert.equal(res.status, 403);
+    assert.match(res.body.error, /demo/i);
+    const login = await client.call('/auth/login', 'POST', { email: newUser.email, password: newUser.password });
+    assert.equal(login.status, 401);
+  });
+
+  test('senza modalità demo la stessa registrazione è permessa', async () => {
+    const res = await new Client(startServer({ demoMode: false })).call('/auth/register', 'POST', newUser);
+    assert.equal(res.status, 201);
+  });
+
+  test('gli account demo, admin compreso, continuano ad accedere', async () => {
+    const base = startServer({ demoMode: true, demoAdminEnabled: true });
+    assert.deepEqual((await new Client(base).call('/auth/demo-accounts')).body.roles, [
+      'participant',
+      'organizer',
+      'admin',
+    ]);
+    for (const account of Object.values(DEMO_ACCOUNTS)) {
+      const res = await new Client(base).call('/auth/login', 'POST', { email: account.email, password: DEMO_PASSWORD });
+      assert.equal(res.status, 200, `accesso di ${account.email}`);
+    }
+  });
+});

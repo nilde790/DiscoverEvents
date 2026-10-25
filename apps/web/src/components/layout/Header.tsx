@@ -2,11 +2,14 @@ import { useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { ROLE_LABELS } from '@/lib/constants';
 import { useAuth } from '@/features/auth/AuthContext';
+import { useSiteConfig } from '@/features/site-config/SiteConfigContext';
 
 const MENU_ID = 'menu-principale';
 
 export function Header() {
   const { currentUser, authReady, logout } = useAuth();
+  // In modalità demo non ci si registra: resta solo "Accedi", che porta agli account demo.
+  const { demoMode } = useSiteConfig().config;
   const navigate = useNavigate();
   // Su telefono navigazione e account stanno in un pannello che si apre col pulsante ☰.
   const [menuOpen, setMenuOpen] = useState(false);
@@ -90,9 +93,11 @@ export function Header() {
                 <Link to="/accedi" className="btn btn-secondary">
                   Accedi
                 </Link>
-                <Link to="/registrati" className="btn">
-                  Registrati
-                </Link>
+                {!demoMode && (
+                  <Link to="/registrati" className="btn">
+                    Registrati
+                  </Link>
+                )}
               </>
             )}
           </div>

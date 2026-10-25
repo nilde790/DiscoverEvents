@@ -1,6 +1,12 @@
 import { z } from 'zod';
+import type { PublicConfig } from '@discoverevent/shared/types';
 
 const DEV_SESSION_SECRET = 'chiave-di-sviluppo-non-sicura';
+
+/** "true"/"false" facoltativo. */
+const flag = z.enum(['true', 'false']).optional();
+/** Una variabile lasciata vuota nel file .env (es. `PRIVACY_CONTACT_EMAIL=`) vale come non impostata. */
+const emptyAsUnset = (value: unknown) => (typeof value === 'string' && value.trim() === '' ? undefined : value);
 
 /** Variabili d'ambiente del server, validate tutte insieme all'avvio. */
 const envSchema = z
@@ -11,7 +17,10 @@ const envSchema = z
     SESSION_SECRET: z.string().optional(),
     DB_PATH: z.string().optional(),
     GEOCODER_USER_AGENT: z.string().min(1).default('DiscoverEvent/0.3 (progetto didattico)'),
-    DEMO_ADMIN_ENABLED: z.enum(['true', 'false']).optional(),
+    DEMO_MODE: flag,
+    DEMO_ADMIN_ENABLED: flag,
+    PRIVACY_CONTROLLER_NAME: z.preprocess(emptyAsUnset, z.string().trim().max(200).optional()),
+    PRIVACY_CONTACT_EMAIL: z.preprocess(emptyAsUnset, z.string().trim().email('email non valida').optional()),
   })
   .superRefine((env, ctx) => {
     // Senza una chiave segreta robusta chiunque potrebbe falsificare i cookie di sessione: meglio non partire.
@@ -30,8 +39,45 @@ export interface Config {
   sessionSecret: string;
   dbPath?: string;
   geocoderUserAgent: string;
-  /** Account demo amministratore (password pubblica) attivo: di default sì in sviluppo, no in produzione. */
+  /**
+   * Modalità demo: registrazione disattivata, solo account demo, dati azzerati ogni notte.
+   * Serve al sito pubblico per non raccogliere dati personali reali. Di default no.
+   */
+  demoMode: boolean;
+  /**
+   * Account demo amministratore (password pubblica) attivo: di default sì in sviluppo e in modalità demo
+   * (i dati non sono reali e si azzerano), no in produzione.
+   */
   demoAdminEnabled: boolean;
+  /** Titolare ed email mostrati nell'informativa privacy: si impostano sull'hosting, non nel codice. */
+  privacy: PublicConfig['privacy'];
+}
+
+/** Valida le variabili d'ambiente e ne ricava la configurazione; lancia un errore leggibile se qualcosa non va. */
+export function parseConfig(source: Record<string, string | undefined>): Config {
+  const parsed = envSchema.safeParse(source);
+  if (!parsed.success) {
+    const problems = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
+    throw new Error(`Configurazione non valida:\n${problems}`);
+  }
+  const env = parsed.data;
+  const demoMode = env.DEMO_MODE === 'true';
+
+  return {
+    isProduction: env.NODE_ENV === 'production',
+    port: env.API_PORT,
+    sessionSecret: env.SESSION_SECRET ?? DEV_SESSION_SECRET,
+    dbPath: env.DB_PATH,
+    geocoderUserAgent: env.GEOCODER_USER_AGENT,
+    demoMode,
+    demoAdminEnabled: env.DEMO_ADMIN_ENABLED
+      ? env.DEMO_ADMIN_ENABLED === 'true'
+      : demoMode || env.NODE_ENV !== 'production',
+    privacy: {
+      controllerName: env.PRIVACY_CONTROLLER_NAME ?? null,
+      contactEmail: env.PRIVACY_CONTACT_EMAIL ?? null,
+    },
+  };
 }
 
 /** Legge .env (se presente) e le variabili d'ambiente; si ferma con un messaggio chiaro se qualcosa non va. */
@@ -42,23 +88,9 @@ export function loadConfig(): Config {
     /* nessun file .env: si usano le variabili d'ambiente già presenti */
   }
 
-  const parsed = envSchema.safeParse(process.env);
-  if (!parsed.success) {
-    const problems = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
-    throw new Error(`Configurazione non valida:\n${problems}`);
-  }
-  const env = parsed.data;
-
-  if (!env.SESSION_SECRET) {
+  const config = parseConfig(process.env);
+  if (!process.env.SESSION_SECRET) {
     console.warn('SESSION_SECRET non impostata: uso una chiave di sviluppo. Non usarla in produzione.');
   }
-
-  return {
-    isProduction: env.NODE_ENV === 'production',
-    port: env.API_PORT,
-    sessionSecret: env.SESSION_SECRET ?? DEV_SESSION_SECRET,
-    dbPath: env.DB_PATH,
-    geocoderUserAgent: env.GEOCODER_USER_AGENT,
-    demoAdminEnabled: env.DEMO_ADMIN_ENABLED ? env.DEMO_ADMIN_ENABLED === 'true' : env.NODE_ENV !== 'production',
-  };
+  return config;
 }

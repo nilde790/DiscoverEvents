@@ -21,10 +21,19 @@ interface AuthDeps {
   attemptsPerWindow: number;
   /** Account che non possono accedere (es. l'admin demo in produzione). */
   isDisabledAccount: (email: string) => boolean;
+  /** false in modalità demo: nessuno può creare account, quindi nessun dato personale reale. */
+  registrationEnabled: boolean;
 }
 
 /** Registrazione, accesso, uscita e utente corrente: /api/auth/... */
-export function createAuthRouter({ db, users, requests, attemptsPerWindow, isDisabledAccount }: AuthDeps) {
+export function createAuthRouter({
+  db,
+  users,
+  requests,
+  attemptsPerWindow,
+  isDisabledAccount,
+  registrationEnabled,
+}: AuthDeps) {
   const router = Router();
 
   const authLimiter = rateLimit({
@@ -62,6 +71,10 @@ export function createAuthRouter({ db, users, requests, attemptsPerWindow, isDis
     '/auth/register',
     authLimiter,
     asyncRoute(async (req, res) => {
+      // Il vero blocco è qui: il frontend nasconde il form, ma una chiamata diretta all'API non passa.
+      if (!registrationEnabled) {
+        throw new HttpError(403, 'Questa è una demo: la registrazione è disattivata, usa un account dimostrativo');
+      }
       const input = parseBody(registerSchema, req.body, 'Dati di registrazione non validi');
       if (users.emailExists(input.email)) {
         throw new HttpError(409, 'Dati di registrazione non validi', {

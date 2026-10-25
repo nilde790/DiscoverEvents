@@ -4,10 +4,12 @@ import { fieldErrors, registerSchema } from '@discoverevent/shared/validation';
 import { ApiError } from '@/lib/api';
 import { Field } from '@/components/ui/Field';
 import { useAuth } from '@/features/auth/AuthContext';
+import { useSiteConfig } from '@/features/site-config/SiteConfigContext';
 import { returnPath } from '@/lib/navigation';
 
 export function RegisterPage() {
   const { register, currentUser } = useAuth();
+  const { config, configReady } = useSiteConfig();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -17,6 +19,25 @@ export function RegisterPage() {
   const [busy, setBusy] = useState(false);
 
   if (currentUser) return <Navigate to={returnPath(location.search)} replace />;
+  if (!configReady) return <div className="page auth-page" />;
+  // In modalità demo il server rifiuta comunque la registrazione: qui si evita solo di far compilare un form inutile.
+  if (config.demoMode) {
+    return (
+      <div className="page auth-page">
+        <section className="auth-card">
+          <h1>Registrazione non disponibile</h1>
+          <p>
+            Questo sito è una <strong>dimostrazione</strong>: per non raccogliere dati personali la registrazione è
+            disattivata. Puoi provare tutte le funzioni con un account dimostrativo, da partecipante, organizzatore o
+            amministratore.
+          </p>
+          <Link to={`/accedi${location.search}`} className="btn">
+            Entra con un account demo
+          </Link>
+        </section>
+      </div>
+    );
+  }
 
   const set = (key: keyof typeof values) => (e: { target: { value: string } }) =>
     setValues((v) => ({ ...v, [key]: e.target.value }));

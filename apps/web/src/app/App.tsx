@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { RequireAuth } from '@/features/auth/RequireAuth';
 import { AdminPage } from '@/features/admin/AdminPage';
@@ -10,6 +11,7 @@ import { ExplorePage } from '@/features/events/ExplorePage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { MyEventsPage } from '@/features/events/MyEventsPage';
 import { OrganizerPage } from '@/features/organizer/OrganizerPage';
+import { PrivacyPage } from '@/features/legal/PrivacyPage';
 import { ProfilePage } from '@/features/auth/ProfilePage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
 
@@ -28,6 +30,7 @@ export default function App() {
           <Route path="/eventi/:id" element={<EventPage />} />
           <Route path="/accedi" element={<LoginPage />} />
           <Route path="/registrati" element={<RegisterPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
 
           {/* Pagine che richiedono l'accesso. */}
           <Route path="/profilo" element={authed(<ProfilePage />)} />
@@ -40,6 +43,7 @@ export default function App() {
           <Route path="*" element={<div className="page placeholder">Pagina non trovata.</div>} />
         </Routes>
       </main>
+      <Footer />
     </div>
   );
 }

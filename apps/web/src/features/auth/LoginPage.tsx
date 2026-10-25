@@ -1,8 +1,8 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '@discoverevent/shared/demo';
+import { DEMO_ACCOUNTS, DEMO_PASSWORD, type DemoRole } from '@discoverevent/shared/demo';
 import { fieldErrors, loginSchema } from '@discoverevent/shared/validation';
-import { ApiError } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { Field } from '@/components/ui/Field';
 import { useAuth } from '@/features/auth/AuthContext';
 import { returnPath } from '@/lib/navigation';
@@ -17,6 +17,15 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  // Gli account demo disponibili li decide il server (in produzione niente amministratore demo).
+  const [demoRoles, setDemoRoles] = useState<DemoRole[]>([]);
+
+  useEffect(() => {
+    api
+      .demoAccounts()
+      .then((res) => setDemoRoles(res.roles))
+      .catch(() => setDemoRoles([]));
+  }, []);
 
   if (currentUser) return <Navigate to={goTo} replace />;
 
@@ -64,23 +73,27 @@ export function LoginPage() {
         </p>
       </form>
 
-      <section className="auth-card demo-box">
-        <h2>Vuoi solo provare l'app?</h2>
-        <p className="muted">Entra con un account dimostrativo, senza registrarti.</p>
-        <div className="demo-buttons">
-          {Object.values(DEMO_ACCOUNTS).map((account) => (
-            <button
-              key={account.email}
-              type="button"
-              className="btn btn-secondary"
-              disabled={busy}
-              onClick={() => submit({ email: account.email, password: DEMO_PASSWORD })}
-            >
-              Prova come {account.label.toLowerCase()}
-            </button>
-          ))}
-        </div>
-      </section>
+      {demoRoles.length > 0 && (
+        <section className="auth-card demo-box">
+          <h2>Vuoi solo provare l'app?</h2>
+          <p className="muted">Entra con un account dimostrativo, senza registrarti.</p>
+          <div className="demo-buttons">
+            {demoRoles
+              .map((role) => DEMO_ACCOUNTS[role])
+              .map((account) => (
+                <button
+                  key={account.email}
+                  type="button"
+                  className="btn btn-secondary"
+                  disabled={busy}
+                  onClick={() => submit({ email: account.email, password: DEMO_PASSWORD })}
+                >
+                  Prova come {account.label.toLowerCase()}
+                </button>
+              ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

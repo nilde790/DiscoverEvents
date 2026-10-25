@@ -6,9 +6,14 @@ import { SCHEMA, SCHEMA_VERSION } from './schema';
 import { seed } from './seed';
 
 // apps/api/data/discoverevent.db, indipendente dalla cartella da cui si avvia il server.
-const DEFAULT_DB_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'data', 'discoverevent.db');
+export const DEFAULT_DB_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'data', 'discoverevent.db');
 
-export function openDatabase(path = DEFAULT_DB_PATH): DatabaseSync {
+export interface OpenDatabaseOptions {
+  /** Crea anche l'amministratore demo quando il database nuovo viene popolato (no in produzione). */
+  seedDemoAdmin?: boolean;
+}
+
+export function openDatabase(path = DEFAULT_DB_PATH, { seedDemoAdmin = true }: OpenDatabaseOptions = {}): DatabaseSync {
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
   const db = new DatabaseSync(path);
 
@@ -25,7 +30,7 @@ export function openDatabase(path = DEFAULT_DB_PATH): DatabaseSync {
   db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
 
   const { n } = db.prepare('SELECT COUNT(*) AS n FROM users').get() as { n: number };
-  if (n === 0) transaction(db, () => seed(db));
+  if (n === 0) transaction(db, () => seed(db, { includeAdmin: seedDemoAdmin }));
   return db;
 }
 

@@ -3,11 +3,15 @@ import type { Role, User } from '@discoverevent/shared/types';
 import { HttpError } from '../lib/http';
 import type { UsersRepository } from '../modules/auth/users.repository';
 
-/** L'utente corrente si ricava dalla sessione, mai da dati inviati dal client. */
+/**
+ * L'utente corrente si ricava dalla sessione, mai da dati inviati dal client.
+ * Un account disattivato (es. l'admin demo in produzione) vale come anonimo anche con una sessione ancora aperta.
+ */
 export const loadCurrentUser =
-  (users: UsersRepository): RequestHandler =>
+  (users: UsersRepository, isDisabled: (email: string) => boolean = () => false): RequestHandler =>
   (req, res, next) => {
-    res.locals.user = req.session.userId ? users.getUser(req.session.userId) : undefined;
+    const user = req.session.userId ? users.getUser(req.session.userId) : undefined;
+    res.locals.user = user && !isDisabled(user.email) ? user : undefined;
     next();
   };
 

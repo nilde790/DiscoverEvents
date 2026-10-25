@@ -29,6 +29,15 @@ export function createUsersRepository(db: DatabaseSync) {
     setRole(userId: number, role: Role) {
       db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, userId);
     },
+
+    /** Rende amministratore un utente già registrato (usato da scripts/promote-admin.ts). */
+    promoteToAdmin(email: string): { outcome: 'promoted' | 'already-admin'; user: User } | { outcome: 'not-found' } {
+      const user = db.prepare('SELECT id, name, email, role FROM users WHERE email = ?').get(email) as User | undefined;
+      if (!user) return { outcome: 'not-found' };
+      if (user.role === 'admin') return { outcome: 'already-admin', user };
+      db.prepare("UPDATE users SET role = 'admin' WHERE id = ?").run(user.id);
+      return { outcome: 'promoted', user: { ...user, role: 'admin' } };
+    },
   };
 }
 

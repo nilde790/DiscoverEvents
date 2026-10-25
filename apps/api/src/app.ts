@@ -1,5 +1,6 @@
 import express from 'express';
 import type { DatabaseSync } from 'node:sqlite';
+import { DEMO_ACCOUNTS } from '@discoverevent/shared/demo';
 import { loadCurrentUser } from './middleware/auth';
 import { errorHandler, notFound } from './middleware/error-handler';
 import { sessionMiddleware } from './middleware/session';
@@ -23,6 +24,8 @@ export interface AppOptions {
   authAttemptsPerWindow?: number;
   /** Servizio che trasforma i nomi delle città in coordinate (nei test, uno finto). */
   geocoder: Geocoder;
+  /** Account demo amministratore utilizzabile (password pubblica): false in produzione. Default true. */
+  demoAdminEnabled?: boolean;
 }
 
 /** Monta l'applicazione: middleware comuni, poi le rotte di ogni modulo, poi la gestione degli errori. */
@@ -31,16 +34,29 @@ export function createApp(db: DatabaseSync, options: AppOptions) {
   const events = createEventsRepository(db);
   const requests = createOrganizerRequestsRepository(db);
 
+  // Unico punto che decide quali account non possono entrare: usato dal login e dalla sessione.
+  const demoAdminEnabled = options.demoAdminEnabled ?? true;
+  const isDisabledAccount = (email: string) => !demoAdminEnabled && email === DEMO_ACCOUNTS.admin.email;
+
   const app = express();
   if (options.trustProxy) app.set('trust proxy', 1);
   app.use(express.json({ limit: '100kb' }));
   app.use(sessionMiddleware(db, { secret: options.sessionSecret, secureCookies: options.secureCookies ?? false }));
-  app.use('/api', loadCurrentUser(users));
+  app.use('/api', loadCurrentUser(users, isDisabledAccount));
 
   app.get('/api/health', (_req, res) => {
     res.json({ ok: true });
   });
-  app.use('/api', createAuthRouter({ db, users, requests, attemptsPerWindow: options.authAttemptsPerWindow ?? 10 }));
+  app.use(
+    '/api',
+    createAuthRouter({
+      db,
+      users,
+      requests,
+      attemptsPerWindow: options.authAttemptsPerWindow ?? 10,
+      isDisabledAccount,
+    }),
+  );
   app.use('/api', createOrganizerRequestsRouter({ db, users, requests }));
   app.use('/api', createEventsRouter({ db, events }));
   app.use('/api', createPlacesRouter({ geocoder: options.geocoder }));

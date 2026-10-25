@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 import { ToastProvider } from '@/components/ui/Toast';
 import { AuthProvider } from '@/features/auth/AuthContext';
 import { EventsProvider } from '@/features/events/EventsContext';

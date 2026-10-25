@@ -1,5 +1,5 @@
 import type { Request, RequestHandler, Response } from 'express';
-import type { ZodType, ZodTypeDef } from 'zod';
+import type { ZodType } from 'zod';
 import { fieldErrors } from '@discoverevent/shared/validation';
 
 /** Errore con codice HTTP: lanciato nelle rotte, trasformato in JSON dal gestore degli errori. */
@@ -21,7 +21,7 @@ export const asyncRoute =
   };
 
 /** Valida il corpo della richiesta con uno schema Zod; in caso di errore risponde 400 con gli errori per campo. */
-export function parseBody<T>(schema: ZodType<T, ZodTypeDef, unknown>, body: unknown, message: string): T {
+export function parseBody<T>(schema: ZodType<T, unknown>, body: unknown, message: string): T {
   const parsed = schema.safeParse(body);
   if (!parsed.success) throw new HttpError(400, message, fieldErrors(parsed.error));
   return parsed.data;

@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 import { registrationStatus, type EventSummary } from '@discoverevent/shared/types';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useEvents } from '@/features/events/EventsContext';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import type { EventDetail } from '@discoverevent/shared/types';
 import { Capacity } from '@/features/events/components/Capacity';
 import { EventActions } from '@/features/events/components/EventActions';

@@ -32,6 +32,8 @@ export interface AppOptions {
   demoMode?: boolean;
   /** Titolare ed email per l'informativa privacy, esposti da GET /api/config. */
   privacy?: PublicConfig['privacy'];
+  /** Cartella con la build del frontend (apps/web/dist): se c'è, Express serve anche il sito. */
+  staticDir?: string;
 }
 
 /** Monta l'applicazione: middleware comuni, poi le rotte di ogni modulo, poi la gestione degli errori. */
@@ -77,6 +79,12 @@ export function createApp(db: DatabaseSync, options: AppOptions) {
   app.use('/api', createPlacesRouter({ geocoder: options.geocoder }));
 
   app.use('/api', notFound);
+  if (options.staticDir) {
+    app.use(express.static(options.staticDir));
+    app.get('*', (_req, res) => {
+      res.sendFile('index.html', { root: options.staticDir });
+    });
+  }
   app.use(errorHandler);
   return app;
 }

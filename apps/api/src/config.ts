@@ -16,6 +16,7 @@ const envSchema = z
     API_PORT: z.coerce.number().int().positive().default(3001),
     SESSION_SECRET: z.string().optional(),
     DB_PATH: z.string().optional(),
+    STATIC_DIR: z.string().optional(),
     GEOCODER_USER_AGENT: z.string().min(1).default('DiscoverEvent/0.3 (progetto didattico)'),
     DEMO_MODE: flag,
     DEMO_ADMIN_ENABLED: flag,
@@ -38,6 +39,8 @@ export interface Config {
   port: number;
   sessionSecret: string;
   dbPath?: string;
+  /** Cartella della build del frontend: se impostata, il server serve anche il sito (in produzione). */
+  staticDir?: string;
   geocoderUserAgent: string;
   /**
    * Modalità demo: registrazione disattivata, solo account demo, dati azzerati ogni notte.
@@ -68,6 +71,7 @@ export function parseConfig(source: Record<string, string | undefined>): Config 
     port: env.API_PORT,
     sessionSecret: env.SESSION_SECRET ?? DEV_SESSION_SECRET,
     dbPath: env.DB_PATH,
+    staticDir: env.STATIC_DIR,
     geocoderUserAgent: env.GEOCODER_USER_AGENT,
     demoMode,
     demoAdminEnabled: env.DEMO_ADMIN_ENABLED

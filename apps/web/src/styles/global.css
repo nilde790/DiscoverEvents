@@ -874,16 +874,24 @@ textarea:focus-visible {
   font-size: var(--text-md);
 }
 
-/* Segnaposto sulla mappa: il colore viene dalla categoria. */
+/* Tile un po' meno sature: strade e parchi colorati non competono con i segnaposto. */
+.map .leaflet-tile-pane {
+  filter: saturate(0.55);
+}
+
+/* Segnaposto sulla mappa: il colore viene dalla categoria.
+   Bordo bianco dentro e contorno scuro fuori (ombra), così stacca sia
+   sulle zone chiare sia su quelle scure delle tile. */
 .event-marker {
   fill: var(--cat);
-  fill-opacity: 0.92;
-  transition:
-    fill-opacity var(--dur-fast) var(--ease),
-    stroke-width var(--dur-fast) var(--ease);
+  fill-opacity: 1;
+  filter: drop-shadow(0 0 1px rgb(15 23 42 / 90%)) drop-shadow(0 1px 2px rgb(15 23 42 / 45%));
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform var(--dur-fast) var(--ease);
 }
 .event-marker:hover {
-  fill-opacity: 1;
+  transform: scale(1.25);
 }
 /* Alone che pulsa attorno all'evento selezionato. */
 .marker-halo {

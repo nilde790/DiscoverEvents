@@ -64,7 +64,7 @@ export function MapView({ center, radiusKm, events, selectedId, onSelect }: Prop
           // Leaflet applica la classe solo alla creazione: la chiave ricrea l'alone se cambia evento o categoria.
           key={`halo-${selected.id}-${selected.category}`}
           center={[selected.lat, selected.lng]}
-          radius={11}
+          radius={12}
           interactive={false}
           pathOptions={{ className: `marker-halo ${categoryClass(selected.category)}` }}
         />
@@ -77,11 +77,11 @@ export function MapView({ center, radiusKm, events, selectedId, onSelect }: Prop
             // Il colore arriva dalla classe CSS della categoria, che Leaflet applica solo alla creazione.
             key={`${e.id}-${e.category}`}
             center={[e.lat, e.lng]}
-            radius={isSelected ? 11 : 7}
+            radius={isSelected ? 12 : 9}
             pathOptions={{
               className: `event-marker ${categoryClass(e.category)}`,
               color: isSelected ? '#0f172a' : '#fff',
-              weight: isSelected ? 3 : 1.5,
+              weight: isSelected ? 3 : 2.5,
             }}
             eventHandlers={{ click: () => onSelect(e.id) }}
           >

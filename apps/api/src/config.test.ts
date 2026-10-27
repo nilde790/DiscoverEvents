@@ -32,6 +32,17 @@ describe('configurazione', () => {
     assert.deepEqual(empty.privacy, { controllerName: null, contactEmail: null });
   });
 
+  test('STATIC_DIR arriva nella configurazione; se manca, il server non serve il sito', () => {
+    assert.equal(parseConfig({ STATIC_DIR: '/app/apps/web/dist' }).staticDir, '/app/apps/web/dist');
+    assert.equal(parseConfig({}).staticDir, undefined);
+  });
+
+  test("porta: prima API_PORT, poi PORT (data dall'hosting), altrimenti 3001", () => {
+    assert.equal(parseConfig({}).port, 3001);
+    assert.equal(parseConfig({ PORT: '10000' }).port, 10000);
+    assert.equal(parseConfig({ API_PORT: '3001', PORT: '10000' }).port, 3001);
+  });
+
   test('valori sbagliati fermano il server con un messaggio chiaro', () => {
     assert.throws(() => parseConfig({ DEMO_MODE: 'si' }), /DEMO_MODE/);
     assert.throws(() => parseConfig({ PRIVACY_CONTACT_EMAIL: 'non-una-email' }), /PRIVACY_CONTACT_EMAIL/);

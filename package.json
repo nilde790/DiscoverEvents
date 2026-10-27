@@ -15,6 +15,7 @@
     "dev:api": "npm run dev -w @discoverevent/api",
     "dev:web": "npm run dev -w @discoverevent/web",
     "build": "npm run build -w @discoverevent/web",
+    "start": "npm run start -w @discoverevent/api",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "lint": "eslint .",

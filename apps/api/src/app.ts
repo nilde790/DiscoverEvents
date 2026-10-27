@@ -1,5 +1,6 @@
 import express from 'express';
 import type { DatabaseSync } from 'node:sqlite';
+import { join } from 'node:path';
 import { DEMO_ACCOUNTS } from '@discoverevent/shared/demo';
 import type { PublicConfig } from '@discoverevent/shared/types';
 import { loadCurrentUser } from './middleware/auth';
@@ -80,9 +81,15 @@ export function createApp(db: DatabaseSync, options: AppOptions) {
 
   app.use('/api', notFound);
   if (options.staticDir) {
-    app.use(express.static(options.staticDir));
+    const { staticDir } = options;
+    // I file in assets/ hanno un hash nel nome: se cambiano, cambia il nome. Il browser può tenerli un anno.
+    app.use('/assets', express.static(join(staticDir, 'assets'), { immutable: true, maxAge: '1y' }));
+    // Gli altri file (es. comuni.txt) senza cache lunga; index.html lo serve solo l'ultimo operaio.
+    app.use(express.static(staticDir, { index: false }));
     app.get('*', (_req, res) => {
-      res.sendFile('index.html', { root: options.staticDir });
+      // index.html sempre ricontrollato: dopo un deploy punta ai nuovi file di assets/.
+      res.setHeader('Cache-Control', 'no-cache');
+      res.sendFile('index.html', { root: staticDir });
     });
   }
   app.use(errorHandler);

@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { Star } from 'lucide-react';
 import type { EventSummary } from '@discoverevent/shared/types';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useEvents } from '@/features/events/EventsContext';
@@ -33,7 +34,7 @@ export function EventCompactCard({ event, distanceKm, timeOnly = false }: Props)
             }
             onClick={() => toggleFavorite(event)}
           >
-            {event.isFavorite ? '★' : '☆'}
+            <Star size={16} fill={event.isFavorite ? 'currentColor' : 'none'} aria-hidden="true" />
           </button>
         )}
       </div>

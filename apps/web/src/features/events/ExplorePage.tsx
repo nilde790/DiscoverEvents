@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { Link } from 'react-router';
+import { ArrowRight, Search, Star } from 'lucide-react';
 import { CATEGORIES, registrationStatus } from '@discoverevent/shared/types';
 import { Capacity } from '@/features/events/components/Capacity';
 import { EventActions } from '@/features/events/components/EventActions';
@@ -107,18 +108,7 @@ export function ExplorePage() {
           aria-controls="filtri-mappa"
           onClick={() => setFiltersOpen((open) => !open)}
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" />
-          </svg>
+          <Search size={16} aria-hidden="true" />
           <span className="map-toolbar-place">
             {nearby.label} · {radiusKm} km
           </span>
@@ -203,7 +193,7 @@ export function ExplorePage() {
               <Capacity event={selected} />
               <EventActions event={selected} />
               <Link to={`/eventi/${selected.id}`} className="link">
-                Apri la scheda completa →
+                Apri la scheda completa <ArrowRight size={16} aria-hidden="true" />
               </Link>
             </article>
           )}
@@ -218,7 +208,9 @@ export function ExplorePage() {
                 >
                   <span className={`dot ${categoryClass(e.category)}`} />
                   <span className="list-title">
-                    {e.isFavorite && '★ '}
+                    {e.isFavorite && (
+                      <Star className="list-fav" size={14} fill="currentColor" role="img" aria-label="Preferito" />
+                    )}
                     {e.title}
                   </span>
                   <span className="muted">

@@ -5,6 +5,7 @@ import { CATEGORIES, registrationStatus } from '@discoverevent/shared/types';
 import { Capacity } from '@/features/events/components/Capacity';
 import { EventActions } from '@/features/events/components/EventActions';
 import { CategoryBadge, StatusBadge } from '@/features/events/components/EventBadges';
+import { EventCover } from '@/features/events/components/EventCover';
 import { MapView, type MapPadding } from '@/features/events/components/MapView';
 import { SearchFilters } from '@/features/events/components/SearchFilters';
 import { categoryClass, MAX_RADIUS_KM } from '@/lib/constants';
@@ -169,6 +170,7 @@ export function ExplorePage() {
           {selected && (
             // La chiave fa ripartire l'animazione di comparsa a ogni nuova selezione.
             <article className="detail" key={selected.id}>
+              <EventCover category={selected.category} size="panel" />
               <div className="card-top">
                 <CategoryBadge event={selected} />
                 <StatusBadge event={selected} />

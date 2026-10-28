@@ -5,6 +5,7 @@ import type { EventDetail } from '@discoverevent/shared/types';
 import { Capacity } from '@/features/events/components/Capacity';
 import { EventActions } from '@/features/events/components/EventActions';
 import { CategoryBadge, StatusBadge } from '@/features/events/components/EventBadges';
+import { EventCover } from '@/features/events/components/EventCover';
 import { LocationMap } from '@/features/events/components/MapView';
 import { api } from '@/lib/api';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -56,6 +57,7 @@ export function EventPage() {
       <Link to="/catalogo" className="link">
         <ArrowLeft size={16} aria-hidden="true" /> Catalogo
       </Link>
+      <EventCover category={event.category} size="hero" />
       <div className="event-layout">
         <section>
           <div className="card-top">

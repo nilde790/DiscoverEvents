@@ -4,7 +4,8 @@ import type { EventSummary } from '@discoverevent/shared/types';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useEvents } from '@/features/events/EventsContext';
 import { formatDate, formatDistance, formatPrice, formatTime } from '@/lib/format';
-import { CategoryBadge, SeatsBadge } from './EventBadges';
+import { SeatsBadge } from './EventBadges';
+import { EventCover } from './EventCover';
 
 interface Props {
   event: EventSummary;
@@ -20,34 +21,37 @@ export function EventCompactCard({ event, distanceKm, timeOnly = false }: Props)
 
   return (
     <article className="ec">
-      <div className="ec-top">
-        <span className="ec-time">{timeOnly ? formatTime(event.start) : formatDate(event.start)}</span>
-        <CategoryBadge event={event} />
-        {/* I preferiti sono personali: senza accesso la stella non c'è. */}
-        {currentUser && (
-          <button
-            type="button"
-            className={`star-btn ${event.isFavorite ? 'on' : ''}`}
-            aria-pressed={event.isFavorite}
-            aria-label={
-              event.isFavorite ? `Rimuovi ${event.title} dai preferiti` : `Aggiungi ${event.title} ai preferiti`
-            }
-            onClick={() => toggleFavorite(event)}
-          >
-            <Star size={16} fill={event.isFavorite ? 'currentColor' : 'none'} aria-hidden="true" />
-          </button>
-        )}
-      </div>
-      <Link to={`/eventi/${event.id}`} className="ec-title">
-        {event.title}
-      </Link>
-      <span className="ec-meta">
-        {event.venue}
-        {distanceKm !== undefined && ` · ${formatDistance(distanceKm)}`}
-      </span>
-      <div className="ec-foot">
-        <strong>{formatPrice(event.price)}</strong>
-        <SeatsBadge event={event} />
+      {/* La copertina porta anche il nome della categoria: niente badge in più. */}
+      <EventCover category={event.category} />
+      <div className="ec-body">
+        <div className="ec-top">
+          <span className="ec-time">{timeOnly ? formatTime(event.start) : formatDate(event.start)}</span>
+          {/* I preferiti sono personali: senza accesso la stella non c'è. */}
+          {currentUser && (
+            <button
+              type="button"
+              className={`star-btn ${event.isFavorite ? 'on' : ''}`}
+              aria-pressed={event.isFavorite}
+              aria-label={
+                event.isFavorite ? `Rimuovi ${event.title} dai preferiti` : `Aggiungi ${event.title} ai preferiti`
+              }
+              onClick={() => toggleFavorite(event)}
+            >
+              <Star size={16} fill={event.isFavorite ? 'currentColor' : 'none'} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+        <Link to={`/eventi/${event.id}`} className="ec-title">
+          {event.title}
+        </Link>
+        <span className="ec-meta">
+          {event.venue}
+          {distanceKm !== undefined && ` · ${formatDistance(distanceKm)}`}
+        </span>
+        <div className="ec-foot">
+          <strong>{formatPrice(event.price)}</strong>
+          <SeatsBadge event={event} />
+        </div>
       </div>
     </article>
   );

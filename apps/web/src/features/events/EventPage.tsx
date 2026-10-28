@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
+import { ArrowLeft } from 'lucide-react';
 import type { EventDetail } from '@discoverevent/shared/types';
 import { Capacity } from '@/features/events/components/Capacity';
 import { EventActions } from '@/features/events/components/EventActions';
@@ -39,7 +40,9 @@ export function EventPage() {
     return (
       <div className="page">
         <p className="notice error">{error}</p>
-        <Link to="/catalogo">← Torna al catalogo</Link>
+        <Link to="/catalogo" className="link">
+          <ArrowLeft size={16} aria-hidden="true" /> Torna al catalogo
+        </Link>
       </div>
     );
   if (!detail) return <div className="page muted">Caricamento…</div>;
@@ -51,7 +54,7 @@ export function EventPage() {
   return (
     <div className="page event-page">
       <Link to="/catalogo" className="link">
-        ← Catalogo
+        <ArrowLeft size={16} aria-hidden="true" /> Catalogo
       </Link>
       <div className="event-layout">
         <section>

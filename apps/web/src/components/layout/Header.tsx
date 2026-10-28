@@ -1,5 +1,6 @@
 import { useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router';
+import { Briefcase, CalendarDays, LayoutGrid, Map as MapIcon, ShieldCheck } from 'lucide-react';
 import { ROLE_LABELS } from '@/lib/constants';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useSiteConfig } from '@/features/site-config/SiteConfigContext';
@@ -62,12 +63,26 @@ export function Header() {
       <div id={MENU_ID} className={`menu ${menuOpen ? 'open' : ''}`} onClick={onMenuClick}>
         <nav className="nav" aria-label="Navigazione principale">
           <NavLink to="/" end>
-            Mappa
+            <MapIcon size={16} aria-hidden="true" /> Mappa
           </NavLink>
-          <NavLink to="/catalogo">Catalogo</NavLink>
-          {currentUser && <NavLink to="/miei-eventi">I miei eventi</NavLink>}
-          {currentUser?.role === 'organizer' && <NavLink to="/organizzatore">Area organizzatore</NavLink>}
-          {currentUser?.role === 'admin' && <NavLink to="/admin">Amministrazione</NavLink>}
+          <NavLink to="/catalogo">
+            <LayoutGrid size={16} aria-hidden="true" /> Catalogo
+          </NavLink>
+          {currentUser && (
+            <NavLink to="/miei-eventi">
+              <CalendarDays size={16} aria-hidden="true" /> I miei eventi
+            </NavLink>
+          )}
+          {currentUser?.role === 'organizer' && (
+            <NavLink to="/organizzatore">
+              <Briefcase size={16} aria-hidden="true" /> Area organizzatore
+            </NavLink>
+          )}
+          {currentUser?.role === 'admin' && (
+            <NavLink to="/admin">
+              <ShieldCheck size={16} aria-hidden="true" /> Amministrazione
+            </NavLink>
+          )}
         </nav>
 
         {/* Finché non si sa se c'è una sessione non si mostra nulla, per evitare un "Accedi" che lampeggia. */}

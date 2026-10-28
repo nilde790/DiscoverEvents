@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router';
+import { Star } from 'lucide-react';
 import { registrationStatus, type EventSummary } from '@discoverevent/shared/types';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useEvents } from '@/features/events/EventsContext';
@@ -50,8 +51,8 @@ export function EventActions({ event, compact = false }: { event: EventSummary; 
         title={event.isFavorite ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
         onClick={() => toggleFavorite(event)}
       >
-        {event.isFavorite ? '★' : '☆'}
-        {!compact && (event.isFavorite ? ' Nei preferiti' : ' Preferito')}
+        <Star size={16} fill={event.isFavorite ? 'currentColor' : 'none'} aria-hidden="true" />
+        {!compact && (event.isFavorite ? 'Nei preferiti' : 'Preferito')}
       </button>
       {registerButton}
     </div>

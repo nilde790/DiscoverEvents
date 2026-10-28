@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
+import { ArrowLeft } from 'lucide-react';
 import { CATEGORIES, type EventInput } from '@discoverevent/shared/types';
 import { eventInputSchema, fieldErrors } from '@discoverevent/shared/validation';
 import { api, ApiError } from '@/lib/api';
@@ -127,7 +128,7 @@ export function EventFormPage() {
   return (
     <div className="page">
       <Link to="/organizzatore" className="link">
-        ← Area organizzatore
+        <ArrowLeft size={16} aria-hidden="true" /> Area organizzatore
       </Link>
       <h1>{editingId ? 'Modifica evento' : 'Nuovo evento'}</h1>
 

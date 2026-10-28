@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { ArrowRight } from 'lucide-react';
 import { registrationStatus, type EventSummary } from '@discoverevent/shared/types';
 import { EventCard } from '@/features/events/components/EventCard';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -39,11 +40,15 @@ export function MyEventsPage() {
         <p className="muted">{currentUser?.name}</p>
       </div>
       <Section title="Prossime iscrizioni" events={upcoming} empty="Non sei iscritto a nessun evento in programma." />
-      <Section title="Preferiti" events={favorites} empty="Non hai ancora salvato eventi tra i preferiti (★)." />
+      <Section
+        title="Preferiti"
+        events={favorites}
+        empty="Non hai ancora salvato eventi tra i preferiti: usa la stella su un evento."
+      />
       {past.length > 0 && <Section title="Eventi a cui hai partecipato" events={past} empty="" />}
       <p>
         <Link to="/catalogo" className="link">
-          Scopri altri eventi nel catalogo →
+          Scopri altri eventi nel catalogo <ArrowRight size={16} aria-hidden="true" />
         </Link>
       </p>
     </div>

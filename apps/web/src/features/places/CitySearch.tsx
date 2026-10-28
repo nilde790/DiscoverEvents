@@ -1,4 +1,5 @@
 import { useEffect, useId, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { MapPin } from 'lucide-react';
 import type { Place } from '@discoverevent/shared/types';
 import { placeSearchSchema } from '@discoverevent/shared/validation';
 import { api, ApiError } from '@/lib/api';
@@ -112,7 +113,7 @@ export function CitySearch({ place, centerLabel, onChoose }: Props) {
   return (
     <div className="city-search">
       <span className="city-current" title="Centro della ricerca">
-        📍 {centerLabel}
+        <MapPin size={16} aria-hidden="true" /> {centerLabel}
       </span>
       <form onSubmit={onSubmit} className="city-form" role="search">
         <div className="city-combo">

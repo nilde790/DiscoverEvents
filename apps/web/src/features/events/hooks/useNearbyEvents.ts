@@ -28,17 +28,17 @@ export function useNearbyEvents(events: EventSummary[], place: Place | null) {
       from = `da ${place.name}`;
       label = place.label;
       if (noneNear(place)) {
-        notice = `Ancora nessun evento entro ${MAX_RADIUS_KM} km da ${place.name}: cerca un’altra città qui sopra.`;
+        notice = `Ancora nessun evento entro ${MAX_RADIUS_KM} km da ${place.name}: cerca un’altra città qui sotto.`;
       }
     } else if (geo.status === 'ok') {
       center = geo.position;
       from = 'da te';
       label = 'La tua posizione';
       if (noneNear(geo.position)) {
-        notice = `Ancora nessun evento entro ${MAX_RADIUS_KM} km da te: cerca un’altra città qui sopra.`;
+        notice = `Ancora nessun evento entro ${MAX_RADIUS_KM} km da te: cerca un’altra città qui sotto.`;
       }
     } else if (geo.status === 'denied') {
-      notice = `${geo.error}: ti mostro gli eventi di Roma. Puoi cercare la tua città qui sopra.`;
+      notice = `${geo.error}: ti mostro gli eventi di Roma. Puoi cercare la tua città qui sotto.`;
     }
 
     const withDistance: EventWithDistance[] = events.map((e) => ({ ...e, distanceKm: distanceKm(center, e) }));

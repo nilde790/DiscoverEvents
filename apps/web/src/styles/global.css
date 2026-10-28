@@ -833,33 +833,80 @@ textarea:focus-visible {
   transition: width var(--dur-slow) var(--ease);
 }
 
-/* ---------- Esplora: mappa + dashboard ---------- */
+/* ---------- Esplora: mappa a tutto schermo con pannelli sopra ---------- */
 .explore {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
-.subbar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-5);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-.explore-body {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  min-height: 0;
-}
-.map-wrap {
+.explore-map {
   position: relative;
-  min-height: 300px;
+  flex: 1;
+  min-height: 0;
 }
 .map {
   height: 100%;
   width: 100%;
+}
+.explore-map .map {
+  position: absolute;
+  inset: 0;
+}
+
+/* Pannelli che galleggiano sopra la mappa (sopra anche ai controlli di Leaflet, z-index 1000). */
+.map-filters,
+.map-panel {
+  position: absolute;
+  z-index: 1001;
+  box-sizing: border-box;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+/* Filtri in alto a sinistra, fino al pannello degli eventi (400px + margini). */
+.map-filters {
+  top: var(--space-5);
+  left: var(--space-5);
+  right: calc(400px + 2 * var(--space-5));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+.map-filters-done,
+.map-toolbar,
+.map-panel-toggle {
+  display: none;
+}
+/* Eventi a destra, a tutta altezza. */
+.map-panel {
+  top: var(--space-5);
+  right: var(--space-5);
+  bottom: var(--space-5);
+  width: 400px;
+  overflow-y: auto;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.map-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.map-panel-head > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.map-panel-head strong {
+  font-size: var(--text-lg);
+}
+.detail-close {
+  margin-left: auto;
 }
 .loading {
   position: absolute;
@@ -903,15 +950,6 @@ textarea:focus-visible {
   animation: halo 1.6s var(--ease) infinite;
 }
 
-.dashboard {
-  background: var(--surface);
-  border-left: 1px solid var(--border);
-  overflow-y: auto;
-  padding: var(--space-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1349,14 +1387,103 @@ textarea:focus-visible {
 
 /* ---------- Schermi stretti ---------- */
 @media (max-width: 900px) {
-  .explore-body {
-    grid-template-columns: 1fr;
-    grid-template-rows: 50vh auto;
+  /* Mappa: in alto una barra che apre i filtri, in basso un pannello a due posizioni. */
+  .map-toolbar {
+    position: absolute;
+    z-index: 1001;
+    top: var(--space-3);
+    left: var(--space-3);
+    right: var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding: 0 6px 0 var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    box-shadow: var(--shadow-lg);
+    color: var(--muted);
+    font-size: var(--text-md);
+    text-align: left;
+    cursor: pointer;
   }
-  .dashboard {
-    border-left: none;
-    border-top: 1px solid var(--border);
-    overflow: visible;
+  .map-toolbar-place {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--text);
+    font-weight: 600;
+  }
+  .map-toolbar-filters {
+    padding: 6px var(--space-3);
+    border-radius: var(--radius-pill);
+    background: var(--surface-2);
+    color: var(--text);
+    font-weight: 600;
+  }
+  .map-filters {
+    display: none;
+    top: 68px;
+    left: var(--space-3);
+    right: var(--space-3);
+    max-height: calc(100% - 80px);
+    overflow-y: auto;
+  }
+  .map-filters.open {
+    display: flex;
+    animation: pop-in var(--dur) var(--ease);
+  }
+  .map-filters-done {
+    display: inline-flex;
+  }
+  .map-panel {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-height: 60%;
+    padding: var(--space-4);
+    gap: var(--space-3);
+    border-width: 1px 0 0;
+    border-radius: 20px 20px 0 0;
+  }
+  .map-panel.open {
+    top: 0;
+    max-height: none;
+    border-radius: 0;
+  }
+  .map-panel-toggle {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+  }
+  /* Chiuso: gli eventi scorrono in orizzontale; con un evento scelto si vede solo il suo dettaglio. */
+  .map-panel:not(.open) .list {
+    flex-direction: row;
+    gap: var(--space-2);
+    overflow-x: auto;
+  }
+  .map-panel:not(.open) .list li {
+    flex: 0 0 240px;
+  }
+  .map-panel:not(.open) .list button {
+    height: 100%;
+    border-color: var(--border);
+  }
+  .map-panel.has-selection:not(.open) .list {
+    display: none;
+  }
+  /* Il pannello copre il fondo della mappa: crediti di OpenStreetMap in alto, zoom con le dita. */
+  .explore-map .leaflet-bottom.leaflet-left {
+    top: 68px;
+    bottom: auto;
+  }
+  .explore-map .leaflet-control-zoom {
+    display: none;
   }
   .event-layout {
     grid-template-columns: 1fr;
@@ -1368,9 +1495,6 @@ textarea:focus-visible {
   .city-combo {
     min-width: 0;
     flex: 1 1 100%;
-  }
-  .explore {
-    height: auto;
   }
 }
 
@@ -1414,11 +1538,6 @@ textarea:focus-visible {
   }
   .page {
     padding: var(--space-5) var(--space-4) var(--space-7);
-  }
-  .subbar,
-  .dashboard {
-    padding-left: var(--space-4);
-    padding-right: var(--space-4);
   }
   .notice {
     padding: var(--space-2) var(--space-4);

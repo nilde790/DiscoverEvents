@@ -1,5 +1,16 @@
 import { useEffect } from 'react';
-import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet';
+import { latLng } from 'leaflet';
+import {
+  AttributionControl,
+  Circle,
+  CircleMarker,
+  MapContainer,
+  TileLayer,
+  Tooltip,
+  useMap,
+  useMapEvents,
+  ZoomControl,
+} from 'react-leaflet';
 import type { EventSummary } from '@discoverevent/shared/types';
 import { categoryClass } from '@/lib/constants';
 import type { LatLng } from '@/lib/geo';
@@ -7,45 +18,79 @@ import type { LatLng } from '@/lib/geo';
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
+/** Spazio in px coperto da pannelli sopra la mappa: [sopra, destra, sotto, sinistra]. */
+export type MapPadding = [number, number, number, number];
+
 interface Props {
   center: LatLng;
   radiusKm: number;
   events: EventSummary[];
   selectedId: number | null;
   onSelect: (id: number) => void;
+  /** Spazio coperto quando si inquadra il raggio. */
+  padding?: MapPadding;
+  /** Spazio coperto quando si vola sull'evento scelto (il pannello col dettaglio può essere più alto). */
+  focusPadding?: MapPadding;
 }
 
 /** Sposta la mappa sull'evento selezionato senza rimontare il componente. */
-function FlyTo({ target }: { target: LatLng | null }) {
+function FlyTo({ target, padding }: { target: LatLng | null; padding: MapPadding }) {
   const map = useMap();
   const lat = target?.lat;
   const lng = target?.lng;
+  const [top, right, bottom, left] = padding;
   // Dipende dalle coordinate, non dall'oggetto: aggiungere ai preferiti non deve far ripartire l'animazione.
   useEffect(() => {
     if (lat === undefined || lng === undefined) return;
+    const zoom = Math.max(map.getZoom(), 14);
+    // Centro spostato in modo che l'evento cada a metà della parte di mappa non coperta dai pannelli.
+    const shifted = map.project([lat, lng], zoom).add([(right - left) / 2, (bottom - top) / 2]);
     // Con "riduci movimento" attivo nel sistema la mappa salta sull'evento senza volo animato.
     const animate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    map.flyTo([lat, lng], Math.max(map.getZoom(), 14), { duration: 0.6, animate });
-  }, [lat, lng, map]);
+    map.flyTo(map.unproject(shifted, zoom), zoom, { duration: 0.6, animate });
+  }, [lat, lng, map, top, right, bottom, left]);
   return null;
 }
 
-/** MapContainer usa `center` solo alla prima apertura: quando il centro cambia (nuova città) la mappa va spostata. */
-function Recenter({ center }: { center: LatLng }) {
+/**
+ * Inquadra il cerchio del raggio quando cambiano centro o raggio, lasciando fuori lo spazio coperto dai pannelli.
+ * MapContainer usa `center` solo alla prima apertura, quindi anche una nuova città passa da qui.
+ */
+function FitRadius({ center, radiusKm, padding }: { center: LatLng; radiusKm: number; padding: MapPadding }) {
   const map = useMap();
   const { lat, lng } = center;
+  const [top, right, bottom, left] = padding;
   useEffect(() => {
-    map.setView([lat, lng], 12);
-  }, [lat, lng, map]);
+    // toBounds vuole il lato del quadrato in metri: il diametro del cerchio.
+    const bounds = latLng(lat, lng).toBounds(radiusKm * 2000);
+    map.fitBounds(bounds, { paddingTopLeft: [left, top], paddingBottomRight: [right, bottom], animate: false });
+  }, [lat, lng, radiusKm, map, top, right, bottom, left]);
   return null;
 }
 
-export function MapView({ center, radiusKm, events, selectedId, onSelect }: Props) {
+export function MapView({
+  center,
+  radiusKm,
+  events,
+  selectedId,
+  onSelect,
+  padding = [0, 0, 0, 0],
+  focusPadding = padding,
+}: Props) {
   const selected = events.find((e) => e.id === selectedId) ?? null;
 
   return (
-    <MapContainer center={[center.lat, center.lng]} zoom={12} className="map">
+    // Controlli in basso a sinistra: in alto e a destra ci sono i pannelli della pagina.
+    <MapContainer
+      center={[center.lat, center.lng]}
+      zoom={12}
+      className="map"
+      zoomControl={false}
+      attributionControl={false}
+    >
       <TileLayer attribution={ATTRIBUTION} url={TILE_URL} />
+      <ZoomControl position="bottomleft" />
+      <AttributionControl position="bottomleft" />
       <Circle
         center={[center.lat, center.lng]}
         radius={radiusKm * 1000}
@@ -90,8 +135,8 @@ export function MapView({ center, radiusKm, events, selectedId, onSelect }: Prop
         );
       })}
 
-      <Recenter center={center} />
-      <FlyTo target={selected} />
+      <FitRadius center={center} radiusKm={radiusKm} padding={padding} />
+      <FlyTo target={selected} padding={focusPadding} />
     </MapContainer>
   );
 }

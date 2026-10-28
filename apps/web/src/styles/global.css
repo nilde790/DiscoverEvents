@@ -1023,6 +1023,10 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  /* overflow: hidden arrotonda la copertina, ma toglie l'altezza minima: senza flex: none
+     il pannello della mappa lo schiaccerebbe. */
+  flex: none;
+  overflow: hidden;
   padding: var(--space-4);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1156,22 +1160,15 @@ textarea:focus-visible {
   flex-direction: column;
   gap: var(--space-2);
 }
-/* Le card degli eventi hanno una sottile striscia col colore della categoria. */
+/* Le card degli eventi si aprono con la copertina della categoria (EventCover). */
 .grid > .card {
   overflow: hidden;
-  padding-top: var(--space-5);
+  padding-top: 0;
   transition:
     transform var(--dur) var(--ease),
     box-shadow var(--dur) var(--ease),
     border-color var(--dur) var(--ease);
   animation: fade-up var(--dur-slow) var(--ease) backwards;
-}
-.grid > .card::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 4px;
-  background: var(--cat, var(--primary));
 }
 .grid > .card:hover {
   transform: translateY(-2px);
@@ -1210,6 +1207,64 @@ textarea:focus-visible {
   padding-top: var(--space-2);
 }
 
+/* ---------- Copertina generata dalla categoria ---------- */
+/* Tinta tenue del colore di categoria e grande icona tagliata dal bordo.
+   Il nome usa --text: il colore di categoria sulla tinta non arriva a 4.5:1 per un testo piccolo. */
+.cover {
+  position: relative;
+  overflow: hidden;
+  flex: none;
+  background: color-mix(in srgb, var(--cat) 16%, var(--surface));
+  border-bottom: 1px solid color-mix(in srgb, var(--cat) 30%, var(--surface));
+  color: var(--cat);
+}
+.cover-label {
+  position: absolute;
+  left: 14px;
+  top: 10px;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text);
+}
+.cover-icon {
+  position: absolute;
+  right: -18px;
+  bottom: -26px;
+  width: 120px;
+  height: 120px;
+  opacity: 0.85;
+}
+.cover-card {
+  height: 104px;
+}
+.cover-panel {
+  height: 120px;
+}
+.cover-hero {
+  height: 180px;
+  border: 1px solid color-mix(in srgb, var(--cat) 30%, var(--surface));
+  border-radius: var(--radius-lg);
+}
+.cover-hero .cover-label {
+  left: var(--space-5);
+  top: var(--space-4);
+  font-size: var(--text-base);
+}
+.cover-hero .cover-icon {
+  right: -24px;
+  bottom: -40px;
+  width: 200px;
+  height: 200px;
+}
+/* Nelle card la copertina arriva fino ai bordi, sopra al contenuto. */
+.grid > .card > .cover {
+  margin: 0 calc(-1 * var(--space-5)) var(--space-2);
+}
+.detail > .cover {
+  margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-4)) 0;
+}
+
 /* ---------- Catalogo: eventi vicini, raggruppati per giorno ---------- */
 .catalog-head {
   display: flex;
@@ -1243,8 +1298,7 @@ textarea:focus-visible {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px var(--space-4);
+  overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1256,6 +1310,12 @@ textarea:focus-visible {
 .ec:hover {
   border-color: var(--border-strong);
   box-shadow: var(--shadow);
+}
+.ec-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--space-3) var(--space-4) 14px;
 }
 .ec-top {
   display: flex;
@@ -1698,6 +1758,15 @@ textarea:focus-visible {
   }
   .page {
     padding: var(--space-5) var(--space-4) var(--space-7);
+  }
+  /* Copertine più basse: più eventi per schermata. */
+  .cover-card {
+    height: 72px;
+  }
+  .cover-card .cover-icon {
+    width: 92px;
+    height: 92px;
+    bottom: -22px;
   }
   /* Catalogo: filtri dietro a un pulsante, gli eventi arrivano subito. */
   .catalog-filters-toggle {

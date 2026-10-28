@@ -5,6 +5,7 @@ import { formatDate, formatDistance, formatPrice } from '@/lib/format';
 import { Capacity } from './Capacity';
 import { EventActions } from './EventActions';
 import { CategoryBadge, StatusBadge } from './EventBadges';
+import { EventCover } from './EventCover';
 
 interface Props {
   event: EventSummary;
@@ -14,6 +15,7 @@ interface Props {
 export function EventCard({ event, distanceKm }: Props) {
   return (
     <article className={`card ${categoryClass(event.category)}`}>
+      <EventCover category={event.category} />
       <div className="card-top">
         <CategoryBadge event={event} />
         <StatusBadge event={event} />

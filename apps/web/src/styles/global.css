@@ -1293,6 +1293,74 @@ textarea:focus-visible {
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: var(--space-4);
 }
+
+/* Righe di scoperta: card affiancate che scorrono di lato, agganciandosi una alla volta. */
+.discover-title {
+  font-size: var(--text-xl);
+  letter-spacing: -0.02em;
+}
+.ec-row {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: var(--space-2);
+}
+.ec-row > .ec {
+  flex: 0 0 260px;
+  scroll-snap-align: start;
+}
+/* Riquadri categoria: stessa tinta delle copertine; attivo = bordo pieno del colore. */
+.cat-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-3);
+}
+.cat-tile {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: var(--space-3);
+  align-items: center;
+  min-height: 64px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--cat) 30%, var(--surface));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--cat) 10%, var(--surface));
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.cat-tile > svg {
+  grid-row: span 2;
+  color: var(--cat);
+}
+.cat-tile:hover {
+  border-color: var(--cat);
+}
+.cat-tile.active {
+  border-color: var(--cat);
+  box-shadow: inset 0 0 0 1px var(--cat);
+}
+.cat-tile-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+.quick-active {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-soft-border);
+}
+.quick-active .link {
+  margin-left: auto;
+}
 /* Card compatta: tutta la card porta alla scheda dell'evento, la stella resta cliccabile sopra. */
 .ec {
   position: relative;

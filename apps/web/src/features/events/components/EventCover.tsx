@@ -2,7 +2,8 @@ import { Cpu, Drama, Music, Palette, Trophy, UtensilsCrossed, type LucideIcon } 
 import type { EventCategory } from '@discoverevent/shared/types';
 import { categoryClass } from '@/lib/constants';
 
-const ICONS: Record<EventCategory, LucideIcon> = {
+/** Icona di ogni categoria: copertine e riquadri del Catalogo usano le stesse. */
+export const CATEGORY_ICONS: Record<EventCategory, LucideIcon> = {
   Musica: Music,
   Sport: Trophy,
   Arte: Palette,
@@ -22,7 +23,7 @@ interface Props {
  * Fa da immagine finché gli eventi non ne avranno una propria.
  */
 export function EventCover({ category, size = 'card' }: Props) {
-  const Icon = ICONS[category];
+  const Icon = CATEGORY_ICONS[category];
   return (
     <div className={`cover cover-${size} ${categoryClass(category)}`}>
       <span className="cover-label">{category}</span>

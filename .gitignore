@@ -4,3 +4,5 @@ apps/api/data
 *.log
 .env
 .env.local
+# Impostazioni di Docker Compose valide solo su un PC (es. certificato dell'antivirus)
+compose.override.yaml

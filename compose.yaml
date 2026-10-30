@@ -1,0 +1,14 @@
+# Avvio locale dell'immagine di produzione: docker compose up --build
+# I segreti non stanno qui: SESSION_SECRET si legge dal file .env nella radice (escluso da Git e da Docker).
+# Le impostazioni valide solo su un PC (es. il certificato di un antivirus) vanno in compose.override.yaml, non committato.
+services:
+  app:
+    build: .
+    image: discoverevent
+    ports:
+      - '8080:3001'
+    environment:
+      SESSION_SECRET: ${SESSION_SECRET:?imposta SESSION_SECRET nel file .env della radice}
+      DEMO_MODE: 'true'
+      # In locale non c'è HTTPS: con il cookie "Secure" il browser non riceverebbe la sessione. Su Render non va impostata.
+      SECURE_COOKIES: 'false'

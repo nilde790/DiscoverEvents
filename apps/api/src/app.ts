@@ -1,4 +1,5 @@
 import express from 'express';
+import helmet from 'helmet';
 import type { DatabaseSync } from 'node:sqlite';
 import { join } from 'node:path';
 import { DEMO_ACCOUNTS } from '@discoverevent/shared/demo';
@@ -50,6 +51,21 @@ export function createApp(db: DatabaseSync, options: AppOptions) {
 
   const app = express();
   if (options.trustProxy) app.set('trust proxy', 1);
+  // Header di sicurezza: dicono al browser da dove la pagina può caricare script e immagini, e altre protezioni.
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          // Le tile della mappa arrivano dai server di OpenStreetMap.
+          'img-src': ["'self'", 'data:', 'https://*.tile.openstreetmap.org'],
+          // HTTPS lo impone già l'hosting (con HSTS); in locale su http://localhost romperebbe il sito.
+          'upgrade-insecure-requests': null,
+        },
+      },
+      // Le tile di OpenStreetMap rispondono 403 senza Referer: agli altri siti mandiamo solo l'origine, mai il percorso.
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    }),
+  );
   app.use(express.json({ limit: '100kb' }));
   app.use(sessionMiddleware(db, { secret: options.sessionSecret, secureCookies: options.secureCookies ?? false }));
   app.use('/api', loadCurrentUser(users, isDisabledAccount));
@@ -78,7 +94,6 @@ export function createApp(db: DatabaseSync, options: AppOptions) {
   app.use('/api', createOrganizerRequestsRouter({ db, users, requests }));
   app.use('/api', createEventsRouter({ db, events }));
   app.use('/api', createPlacesRouter({ geocoder: options.geocoder }));
-
   app.use('/api', notFound);
   if (options.staticDir) {
     const { staticDir } = options;

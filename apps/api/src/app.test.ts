@@ -39,3 +39,17 @@ describe('frontend servito da Express (STATIC_DIR)', () => {
     assert.deepEqual(await res.json(), { error: 'Risorsa non trovata' });
   });
 });
+
+describe('header di sicurezza (helmet)', () => {
+  test('la pagina del sito arriva con gli header di sicurezza', async () => {
+    const res = await fetch(`${site}/`);
+    const csp = res.headers.get('content-security-policy') ?? '';
+    // Express non dichiara più di esserlo: meno informazioni a chi cerca versioni vulnerabili.
+    assert.equal(res.headers.get('x-powered-by'), null);
+    // Le tile di OpenStreetMap rispondono 403 senza Referer: il browser deve mandare almeno l'origine.
+    assert.equal(res.headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
+    // Immagini solo dal sito stesso e dalle tile della mappa; nessun sito può incorniciare la pagina.
+    assert.match(csp, /img-src 'self' data: https:\/\/\*\.tile\.openstreetmap\.org/);
+    assert.match(csp, /frame-ancestors 'self'/);
+  });
+});

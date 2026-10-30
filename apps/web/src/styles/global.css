@@ -1524,7 +1524,9 @@ textarea:focus-visible {
 .actions.large .fav {
   min-height: 48px;
 }
-.event-bar {
+.event-bar,
+.bottom-nav,
+.nav a.nav-menu-only {
   display: none;
 }
 .lead {
@@ -1902,24 +1904,53 @@ textarea:focus-visible {
     height: 92px;
     bottom: -22px;
   }
-  /* Scheda evento: prezzo e azione principale in una barra fissa in basso. */
-  .page.event-page {
-    padding-bottom: 112px;
+  /* Piè di pagina nascosto: in basso c'è la barra delle sezioni, la privacy è nel menu ☰. */
+  .footer {
+    display: none;
   }
+  .nav a.nav-primary {
+    display: none;
+  }
+  .nav a.nav-menu-only {
+    display: inline-flex;
+  }
+  .bottom-nav {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+  .bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 56px;
+    color: var(--muted);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .bottom-nav a.active {
+    color: var(--primary);
+    font-weight: 700;
+  }
+  /* Scheda evento: prezzo e azione principale restano sul fondo, sopra la barra delle sezioni. */
   .ticket-box .actions {
     display: none;
   }
   .event-bar {
-    position: fixed;
+    position: sticky;
     z-index: 1050; /* sopra la mini-mappa di Leaflet, sotto il menu */
-    left: 0;
-    right: 0;
     bottom: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
-    padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+    padding: var(--space-3) var(--space-4);
     background: var(--surface);
     border-top: 1px solid var(--border);
     box-shadow: var(--shadow-lg);

@@ -1,6 +1,6 @@
 import { useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router';
-import { Briefcase, CalendarDays, LayoutGrid, Map as MapIcon, ShieldCheck } from 'lucide-react';
+import { Briefcase, CalendarDays, FileText, LayoutGrid, Map as MapIcon, ShieldCheck } from 'lucide-react';
 import { ROLE_LABELS } from '@/lib/constants';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useSiteConfig } from '@/features/site-config/SiteConfigContext';
@@ -62,14 +62,15 @@ export function Header() {
 
       <div id={MENU_ID} className={`menu ${menuOpen ? 'open' : ''}`} onClick={onMenuClick}>
         <nav className="nav" aria-label="Navigazione principale">
-          <NavLink to="/" end>
+          {/* Su telefono queste tre voci stanno nella barra in basso (BottomNav), non nel menu. */}
+          <NavLink to="/" end className="nav-primary">
             <MapIcon size={16} aria-hidden="true" /> Mappa
           </NavLink>
-          <NavLink to="/catalogo">
+          <NavLink to="/catalogo" className="nav-primary">
             <LayoutGrid size={16} aria-hidden="true" /> Catalogo
           </NavLink>
           {currentUser && (
-            <NavLink to="/miei-eventi">
+            <NavLink to="/miei-eventi" className="nav-primary">
               <CalendarDays size={16} aria-hidden="true" /> I miei eventi
             </NavLink>
           )}
@@ -83,6 +84,10 @@ export function Header() {
               <ShieldCheck size={16} aria-hidden="true" /> Amministrazione
             </NavLink>
           )}
+          {/* Su telefono il piè di pagina lascia posto alla barra in basso: la privacy si raggiunge da qui. */}
+          <NavLink to="/privacy" className="nav-menu-only">
+            <FileText size={16} aria-hidden="true" /> Privacy
+          </NavLink>
         </nav>
 
         {/* Finché non si sa se c'è una sessione non si mostra nulla, per evitare un "Accedi" che lampeggia. */}

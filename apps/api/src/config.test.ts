@@ -43,6 +43,12 @@ describe('configurazione', () => {
     assert.equal(parseConfig({ API_PORT: '3001', PORT: '10000' }).port, 3001);
   });
 
+  test('cookie solo su HTTPS in produzione, salvo SECURE_COOKIES=false per le prove su http://localhost', () => {
+    assert.equal(parseConfig({}).secureCookies, false);
+    assert.equal(parseConfig(PRODUCTION).secureCookies, true);
+    assert.equal(parseConfig({ ...PRODUCTION, SECURE_COOKIES: 'false' }).secureCookies, false);
+  });
+
   test('valori sbagliati fermano il server con un messaggio chiaro', () => {
     assert.throws(() => parseConfig({ DEMO_MODE: 'si' }), /DEMO_MODE/);
     assert.throws(() => parseConfig({ PRIVACY_CONTACT_EMAIL: 'non-una-email' }), /PRIVACY_CONTACT_EMAIL/);

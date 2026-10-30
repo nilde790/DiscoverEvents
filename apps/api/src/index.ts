@@ -10,7 +10,7 @@ const db = openDatabase(config.dbPath, { seedDemoAdmin: config.demoAdminEnabled 
 
 const app = createApp(db, {
   sessionSecret: config.sessionSecret,
-  secureCookies: config.isProduction,
+  secureCookies: config.secureCookies,
   trustProxy: config.isProduction,
   geocoder: createNominatimGeocoder({ userAgent: config.geocoderUserAgent }),
   demoAdminEnabled: config.demoAdminEnabled,

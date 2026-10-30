@@ -19,6 +19,7 @@ const envSchema = z
     SESSION_SECRET: z.string().optional(),
     DB_PATH: z.string().optional(),
     STATIC_DIR: z.string().optional(),
+    SECURE_COOKIES: flag,
     GEOCODER_USER_AGENT: z.string().min(1).default('DiscoverEvent/0.3 (progetto didattico)'),
     DEMO_MODE: flag,
     DEMO_ADMIN_ENABLED: flag,
@@ -43,6 +44,11 @@ export interface Config {
   dbPath?: string;
   /** Cartella della build del frontend: se impostata, il server serve anche il sito (in produzione). */
   staticDir?: string;
+  /**
+   * Cookie di sessione solo su HTTPS: di default sì in produzione. Va spento solo per provare l'immagine
+   * di produzione su http://localhost (es. con Docker Compose), altrimenti il browser non riceve il cookie.
+   */
+  secureCookies: boolean;
   geocoderUserAgent: string;
   /**
    * Modalità demo: registrazione disattivata, solo account demo, dati azzerati ogni notte.
@@ -74,6 +80,7 @@ export function parseConfig(source: Record<string, string | undefined>): Config 
     sessionSecret: env.SESSION_SECRET ?? DEV_SESSION_SECRET,
     dbPath: env.DB_PATH,
     staticDir: env.STATIC_DIR,
+    secureCookies: env.SECURE_COOKIES ? env.SECURE_COOKIES === 'true' : env.NODE_ENV === 'production',
     geocoderUserAgent: env.GEOCODER_USER_AGENT,
     demoMode,
     demoAdminEnabled: env.DEMO_ADMIN_ENABLED

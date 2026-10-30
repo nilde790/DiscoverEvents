@@ -1453,16 +1453,79 @@ textarea:focus-visible {
   background: var(--fav-soft);
 }
 
+/* ---------- Scheda evento: contenuto a sinistra, prezzo e iscrizione a destra ---------- */
 .event-layout {
   display: grid;
-  grid-template-columns: 1fr 420px;
+  grid-template-columns: 1fr 380px;
   gap: var(--space-6);
   align-items: start;
 }
-.event-layout > section {
+.event-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.event-facts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-4);
+}
+.event-facts li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.event-facts svg {
+  flex: none;
+  box-sizing: content-box;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.event-facts li > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: var(--text-sm);
+}
+.event-facts strong {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+/* La colonna laterale resta in vista mentre si legge la descrizione. */
+.event-side {
+  position: sticky;
+  top: var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+.ticket-box {
+  gap: var(--space-4);
+  padding: var(--space-5);
+  box-shadow: var(--shadow);
+}
+.ticket-price {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.actions.large .btn {
+  flex: 1;
+  min-height: 48px;
+  font-size: var(--text-base);
+}
+.actions.large .fav {
+  min-height: 48px;
+}
+.event-bar {
+  display: none;
 }
 .lead {
   font-size: 16px;
@@ -1776,6 +1839,9 @@ textarea:focus-visible {
   .event-layout {
     grid-template-columns: 1fr;
   }
+  .event-side {
+    position: static;
+  }
   .form-grid {
     grid-template-columns: 1fr;
   }
@@ -1835,6 +1901,37 @@ textarea:focus-visible {
     width: 92px;
     height: 92px;
     bottom: -22px;
+  }
+  /* Scheda evento: prezzo e azione principale in una barra fissa in basso. */
+  .page.event-page {
+    padding-bottom: 112px;
+  }
+  .ticket-box .actions {
+    display: none;
+  }
+  .event-bar {
+    position: fixed;
+    z-index: 1050; /* sopra la mini-mappa di Leaflet, sotto il menu */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+  }
+  .event-bar .ticket-price {
+    font-size: var(--text-xl);
+  }
+  .event-bar .actions {
+    flex: 1;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    max-width: 260px;
   }
   /* Catalogo: filtri dietro a un pulsante, gli eventi arrivano subito. */
   .catalog-filters-toggle {

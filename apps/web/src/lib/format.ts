@@ -15,6 +15,15 @@ export const formatTime = (d: Date | string) => timeFmt.format(new Date(d));
 export const formatPrice = (euro: number) =>
   euro === 0 ? 'Gratis' : euro.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
 
+/** Durata leggibile: "45 min", "1 ora", "2 ore e 30 min". */
+export function formatDuration(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${rest} min`;
+  const label = hours === 1 ? '1 ora' : `${hours} ore`;
+  return rest === 0 ? label : `${label} e ${rest} min`;
+}
+
 export const formatDistance = (km: number) => (km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`);
 
 const dayFmt = new Intl.DateTimeFormat('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });

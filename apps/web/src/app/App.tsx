@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Route, Routes } from 'react-router';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { RequireAuth } from '@/features/auth/RequireAuth';
@@ -44,6 +45,7 @@ export default function App() {
         </Routes>
       </main>
       <Footer />
+      <BottomNav />
     </div>
   );
 }

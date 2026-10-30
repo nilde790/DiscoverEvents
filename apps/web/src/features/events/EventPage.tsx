@@ -142,7 +142,7 @@ export function EventPage() {
       </div>
 
       {/* Su telefono prezzo e azione principale restano sempre a portata di pollice.
-          Fuori da .page: la sua animazione d'ingresso sposterebbe una barra position: fixed. */}
+          Fuori da .page, ultima nell'area che scorre: position: sticky la tiene sul fondo, a tutta larghezza. */}
       <div className="event-bar">
         <span className="ticket-price">{price}</span>
         <EventActions event={event} compact large />

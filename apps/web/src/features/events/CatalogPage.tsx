@@ -1,6 +1,10 @@
 import { useState } from 'react';
+import { ArrowRight } from 'lucide-react';
 import { CATEGORIES, registrationStatus } from '@discoverevent/shared/types';
 import { EventCompactCard } from '@/features/events/components/EventCompactCard';
+import { CATEGORY_ICONS } from '@/features/events/components/EventCover';
+import { matchesQuick, QUICK_FILTERS, type QuickFilter } from '@/features/events/discovery';
+import { categoryClass } from '@/lib/constants';
 import { SearchFilters } from '@/features/events/components/SearchFilters';
 import { useEvents } from '@/features/events/EventsContext';
 import { useEventFilters } from '@/features/events/hooks/useEventFilters';
@@ -19,6 +23,8 @@ const SORTERS: Record<SortKey, (a: EventWithDistance, b: EventWithDistance) => n
 
 /** Distanze proposte; "Tutta Italia" toglie il limite. */
 const RADIUS_OPTIONS = [10, 25, 50];
+/** Quanti eventi al massimo in ogni riga di scoperta: il resto con "Vedi tutti". */
+const ROW_LIMIT = 10;
 const ALL_ITALY = 'tutta-italia';
 
 /** Raggruppa per giorno una lista già ordinata per data. */
@@ -45,16 +51,30 @@ export function CatalogPage() {
   const [showPast, setShowPast] = useState(false);
   const [changingCity, setChangingCity] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [quick, setQuick] = useState<QuickFilter | null>(null);
 
-  const list = nearby.events
-    .filter((e) => {
-      const status = registrationStatus(e);
-      if (radiusKm !== null && e.distanceKm > radiusKm) return false;
-      if (!showPast && status === 'closed') return false;
-      if (onlyAvailable && (status === 'full' || status === 'closed')) return false;
-      return filters.matches(e);
-    })
-    .sort(SORTERS[sort]);
+  // Eventi nella zona scelta, prima di ricerca e categorie.
+  const inArea = nearby.events.filter((e) => {
+    const status = registrationStatus(e);
+    if (radiusKm !== null && e.distanceKm > radiusKm) return false;
+    if (!showPast && status === 'closed') return false;
+    if (onlyAvailable && (status === 'full' || status === 'closed')) return false;
+    return true;
+  });
+  const filtered = inArea.filter(filters.matches);
+  const list = (quick ? filtered.filter((e) => matchesQuick(e, quick)) : filtered).sort(SORTERS[sort]);
+
+  // Righe di scoperta e riquadri categoria: solo nella vista normale, non mentre si cerca o si riordina.
+  const showDiscovery = !loading && quick === null && sort === 'date' && !filters.query.trim() && filtered.length > 0;
+  const rows = QUICK_FILTERS.map((q) => {
+    const matching = filtered.filter((e) => matchesQuick(e, q.key)).sort(SORTERS.date);
+    return { ...q, total: matching.length, events: matching.slice(0, ROW_LIMIT) };
+  }).filter((r) => r.total > 0);
+  const categoryCounts = CATEGORIES.map((category) => ({
+    category,
+    count: inArea.filter((e) => e.category === category && filters.matchesQuery(e)).length,
+  }));
+  const quickTitle = QUICK_FILTERS.find((q) => q.key === quick)?.title;
 
   // Quanti filtri si discostano da quelli iniziali, per il pulsante su telefono.
   const changedFilters =
@@ -143,6 +163,64 @@ export function CatalogPage() {
       </div>
 
       {error && <div className="notice error">{error}</div>}
+
+      {quick && (
+        <p className="quick-active">
+          Stai vedendo: <strong>{quickTitle}</strong>
+          <button type="button" className="link" onClick={() => setQuick(null)}>
+            Mostra tutti
+          </button>
+        </p>
+      )}
+
+      {showDiscovery && (
+        <>
+          <section className="section" aria-labelledby="sfoglia-categorie">
+            <h2 id="sfoglia-categorie" className="discover-title">
+              Sfoglia per categoria
+            </h2>
+            <div className="cat-tiles">
+              {categoryCounts.map(({ category, count }) => {
+                const Icon = CATEGORY_ICONS[category];
+                const active = filters.categories.size === 1 && filters.categories.has(category);
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    className={`cat-tile ${categoryClass(category)} ${active ? 'active' : ''}`}
+                    aria-pressed={active}
+                    onClick={() => filters.onlyCategory(category)}
+                  >
+                    <Icon size={22} aria-hidden="true" />
+                    <span className="cat-tile-name">{category}</span>
+                    <span className="muted">{count === 1 ? '1 evento' : `${count} eventi`}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {rows.map((r) => (
+            <section key={r.key} className="section" aria-labelledby={`riga-${r.key}`}>
+              <div className="row-between">
+                <h2 id={`riga-${r.key}`} className="discover-title">
+                  {r.title}
+                </h2>
+                <button type="button" className="link" onClick={() => setQuick(r.key)}>
+                  Vedi tutti ({r.total}) <ArrowRight size={16} aria-hidden="true" />
+                </button>
+              </div>
+              <div className="ec-row">
+                {r.events.map((e) => (
+                  <EventCompactCard key={e.id} event={e} distanceKm={e.distanceKm} timeOnly={r.key === 'today'} />
+                ))}
+              </div>
+            </section>
+          ))}
+
+          <h2 className="discover-title">Tutti gli eventi</h2>
+        </>
+      )}
 
       {/* Per data gli eventi stanno sotto il loro giorno; con gli altri ordinamenti i giorni si mescolano. */}
       {sort === 'date' ? (

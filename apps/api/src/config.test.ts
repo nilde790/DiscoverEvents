@@ -49,6 +49,11 @@ describe('configurazione', () => {
     assert.equal(parseConfig({ ...PRODUCTION, SECURE_COOKIES: 'false' }).secureCookies, false);
   });
 
+  test('NOINDEX: di default il sito si può indicizzare, "true" lo nasconde ai motori di ricerca', () => {
+    assert.equal(parseConfig({}).noIndex, false);
+    assert.equal(parseConfig({ NOINDEX: 'true' }).noIndex, true);
+  });
+
   test('valori sbagliati fermano il server con un messaggio chiaro', () => {
     assert.throws(() => parseConfig({ DEMO_MODE: 'si' }), /DEMO_MODE/);
     assert.throws(() => parseConfig({ PRIVACY_CONTACT_EMAIL: 'non-una-email' }), /PRIVACY_CONTACT_EMAIL/);

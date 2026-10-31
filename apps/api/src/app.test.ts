@@ -52,4 +52,10 @@ describe('header di sicurezza (helmet)', () => {
     assert.match(csp, /img-src 'self' data: https:\/\/\*\.tile\.openstreetmap\.org/);
     assert.match(csp, /frame-ancestors 'self'/);
   });
+
+  test('X-Robots-Tag: noindex solo dove è richiesto (staging)', async () => {
+    assert.equal((await fetch(`${site}/`)).headers.get('x-robots-tag'), null);
+    const staging = startServer({ staticDir: dist, noIndex: true }).replace(/\/api$/, '');
+    assert.equal((await fetch(`${staging}/`)).headers.get('x-robots-tag'), 'noindex');
+  });
 });

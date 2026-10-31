@@ -36,6 +36,8 @@ export interface AppOptions {
   privacy?: PublicConfig['privacy'];
   /** Cartella con la build del frontend (apps/web/dist): se c'è, Express serve anche il sito. */
   staticDir?: string;
+  /** Aggiunge "X-Robots-Tag: noindex" a ogni risposta: lo staging non deve comparire nei motori di ricerca. */
+  noIndex?: boolean;
 }
 
 /** Monta l'applicazione: middleware comuni, poi le rotte di ogni modulo, poi la gestione degli errori. */
@@ -66,6 +68,12 @@ export function createApp(db: DatabaseSync, options: AppOptions) {
       referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     }),
   );
+  if (options.noIndex) {
+    app.use((_req, res, next) => {
+      res.setHeader('X-Robots-Tag', 'noindex');
+      next();
+    });
+  }
   app.use(express.json({ limit: '100kb' }));
   app.use(sessionMiddleware(db, { secret: options.sessionSecret, secureCookies: options.secureCookies ?? false }));
   app.use('/api', loadCurrentUser(users, isDisabledAccount));

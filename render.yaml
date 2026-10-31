@@ -1,5 +1,6 @@
 # Infrastruttura su Render descritta come codice (Blueprint): Render crea e aggiorna i servizi leggendo questo file.
 # Riferimento dei campi: https://render.com/docs/blueprint-spec
+# Flusso: PR → main → staging automatico → prove → tag vX.Y.Z → produzione (.github/workflows/ci.yml).
 services:
   # Staging: si aggiorna da solo a ogni merge su main, ma solo se la CI è verde.
   - type: web
@@ -19,10 +20,35 @@ services:
       # Sito pubblico: solo account demo, dati azzerati ogni notte (il disco gratuito si svuota comunque).
       - key: DEMO_MODE
         value: 'true'
+      # Lo staging non deve comparire su Google al posto della produzione.
+      - key: NOINDEX
+        value: 'true'
       # Nominatim chiede di identificarsi con un contatto: il repository, non un'email personale.
       - key: GEOCODER_USER_AGENT
         value: 'DiscoverEvent-staging (+https://github.com/nilde790/DiscoverEvents)'
       # Dati personali del titolare della privacy: si inseriscono nel pannello di Render, mai nel codice.
+      - key: PRIVACY_CONTROLLER_NAME
+        sync: false
+      - key: PRIVACY_CONTACT_EMAIL
+        sync: false
+
+  # Produzione: non si aggiorna da sola. Il deploy parte solo quando si pubblica un tag vX.Y.Z,
+  # tramite il deploy hook chiamato dalla CI (segreto RENDER_DEPLOY_HOOK nell'ambiente "production" di GitHub).
+  - type: web
+    name: discoverevent
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeployTrigger: 'off'
+    healthCheckPath: /api/health
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DEMO_MODE
+        value: 'true'
+      - key: GEOCODER_USER_AGENT
+        value: 'DiscoverEvent (+https://github.com/nilde790/DiscoverEvents)'
       - key: PRIVACY_CONTROLLER_NAME
         sync: false
       - key: PRIVACY_CONTACT_EMAIL

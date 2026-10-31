@@ -20,6 +20,7 @@ const envSchema = z
     DB_PATH: z.string().optional(),
     STATIC_DIR: z.string().optional(),
     SECURE_COOKIES: flag,
+    NOINDEX: flag,
     GEOCODER_USER_AGENT: z.string().min(1).default('DiscoverEvent/0.3 (progetto didattico)'),
     DEMO_MODE: flag,
     DEMO_ADMIN_ENABLED: flag,
@@ -49,6 +50,8 @@ export interface Config {
    * di produzione su http://localhost (es. con Docker Compose), altrimenti il browser non riceve il cookie.
    */
   secureCookies: boolean;
+  /** Chiede ai motori di ricerca di non indicizzare il sito: per lo staging, che non deve sostituire la produzione. */
+  noIndex: boolean;
   geocoderUserAgent: string;
   /**
    * Modalità demo: registrazione disattivata, solo account demo, dati azzerati ogni notte.
@@ -81,6 +84,7 @@ export function parseConfig(source: Record<string, string | undefined>): Config 
     dbPath: env.DB_PATH,
     staticDir: env.STATIC_DIR,
     secureCookies: env.SECURE_COOKIES ? env.SECURE_COOKIES === 'true' : env.NODE_ENV === 'production',
+    noIndex: env.NOINDEX === 'true',
     geocoderUserAgent: env.GEOCODER_USER_AGENT,
     demoMode,
     demoAdminEnabled: env.DEMO_ADMIN_ENABLED

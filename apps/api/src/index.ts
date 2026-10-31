@@ -17,6 +17,7 @@ const app = createApp(db, {
   demoMode: config.demoMode,
   privacy: config.privacy,
   staticDir: config.staticDir,
+  noIndex: config.noIndex,
 });
 
 // In modalità demo i dati tornano quelli di partenza ogni notte: nessuna traccia resta a lungo.

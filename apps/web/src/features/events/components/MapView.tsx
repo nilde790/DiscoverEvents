@@ -111,7 +111,8 @@ export function MapView({
           center={[selected.lat, selected.lng]}
           radius={12}
           interactive={false}
-          pathOptions={{ className: `marker-halo ${categoryClass(selected.category)}` }}
+          // Prop diretta, non dentro pathOptions: react-leaflet applica pathOptions con setStyle(), che ignora className.
+          className={`marker-halo ${categoryClass(selected.category)}`}
         />
       )}
 
@@ -123,8 +124,8 @@ export function MapView({
             key={`${e.id}-${e.category}`}
             center={[e.lat, e.lng]}
             radius={isSelected ? 12 : 9}
+            className={`event-marker ${categoryClass(e.category)}`}
             pathOptions={{
-              className: `event-marker ${categoryClass(e.category)}`,
               color: isSelected ? '#0f172a' : '#fff',
               weight: isSelected ? 3 : 2.5,
             }}

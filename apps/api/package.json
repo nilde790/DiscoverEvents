@@ -1,7 +1,7 @@
 {
   "name": "@discoverevent/api",
   "private": true,
-  "version": "0.3.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx watch --use-system-ca --env-file=dev.env src/index.ts",

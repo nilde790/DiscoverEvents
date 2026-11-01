@@ -6,6 +6,11 @@ Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/); 
 
 ## [Non ancora rilasciato]
 
+### Correzioni
+
+- I segnaposto degli eventi sulla mappa sono di nuovo pieni e colorati per categoria, con bordo e ombra: prima
+  comparivano come anelli bianchi quasi trasparenti.
+
 ## [1.1.0] - 2026-11-01
 
 ### Funzionalità

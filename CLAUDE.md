@@ -14,6 +14,8 @@ Interfaccia, commenti e messaggi di errore sono **in italiano**.
 | `npm test` | Solo i test delle API (`apps/api/src/**/*.test.ts`, `node:test`) |
 | `npm run lint` / `npm run format` | ESLint / formattazione automatica con Prettier |
 | `npm run build` | Build di produzione del frontend |
+| `npm start` | Server di produzione (con `STATIC_DIR` serve anche `apps/web/dist`) |
+| `docker compose up --build` | Immagine di produzione su http://localhost:8080 (`SESSION_SECRET` dal `.env` della radice) |
 | `npm run db:reset` | Cancella il database locale (`apps/api/data`); si ricrea con i dati demo al prossimo avvio |
 | `npm install <pkg> -w @discoverevent/api` | Aggiunge una dipendenza a un solo workspace |
 
@@ -59,7 +61,9 @@ Su Windows, se `node` non è nel PATH della shell: `export PATH="/c/Program File
 3. Commit nel formato [Conventional Commits](https://www.conventionalcommits.org/it/): `feat: ...`, `fix: ...`, `chore: ...`, `docs: ...`, `test: ...`.
 4. Prima del commit: `npm run check`. Per modifiche all'interfaccia, prova anche nel browser.
 5. Nella descrizione della PR segui il modello in `.github/pull_request_template.md`, dichiarando anche **cosa non è stato verificato**.
-6. A fine lavoro, riassumi in chat cosa è cambiato e perché, in modo comprensibile a chi revisiona senza leggere tutto il codice.
+6. Ogni PR con novità per gli utenti aggiunge una riga a *Non ancora rilasciato* in `CHANGELOG.md`.
+7. **Rilascio:** PR con `npm version X.Y.Z --workspaces --include-workspace-root --no-git-tag-version` e il changelog; dopo il merge, tag annotato `vX.Y.Z` **su `main` aggiornato** (mai su un ramo, mai prima del merge). Il tag manda in produzione: crealo e pubblicalo solo su richiesta esplicita del proprietario. Un tag pubblicato non si sposta.
+8. A fine lavoro, riassumi in chat cosa è cambiato e perché, in modo comprensibile a chi revisiona senza leggere tutto il codice.
 
 ## Stato attuale e decisioni prese
 
@@ -68,5 +72,8 @@ Su Windows, se `node` non è nel PATH della shell: `export PATH="/c/Program File
 - **Account demo:** password pubblica in `packages/shared/src/demo.ts`, usati dai pulsanti "Prova come…" nella pagina di accesso. L'admin demo è attivo in sviluppo e in modalità demo, spento in produzione senza modalità demo (`DEMO_ADMIN_ENABLED` lo forza).
 - **Modalità demo (`DEMO_MODE=true`, sito pubblico):** registrazione bloccata dal server (403), solo account demo, dati riportati al seed ogni notte alle 4 ora italiana (`modules/demo-reset`, un timer nel server: usare una sola istanza). Scelta di minimizzazione dei dati: online nessuno lascia dati personali reali. Spenta di default, così in locale tutto funziona come prima.
 - **Configurazione a runtime:** `GET /api/config` (`modules/site-config`) espone `demoMode` e titolare/email della privacy (`PRIVACY_CONTROLLER_NAME`, `PRIVACY_CONTACT_EMAIL`); il frontend la legge all'avvio con `useSiteConfig()`. Dati personali del titolare mai nel codice.
+- **Deploy (v1.0.0):** Render, piano gratuito, Docker (`Dockerfile` in due fasi, utente `node`), servizi in `render.yaml`. **Staging** (`discoverevent-staging.onrender.com`, `NOINDEX=true`) si aggiorna da solo dopo ogni merge su `main` con la CI verde; **produzione** (`discoverevent.onrender.com`) solo con un tag `v*`, tramite il job `deploy-production` di `ci.yml` (segreto `RENDER_DEPLOY_HOOK` nell'ambiente `production` di GitHub). Disco non permanente: il database riparte dal seed a ogni deploy, accettato perché il sito è in modalità demo.
+- **Sicurezza HTTP:** helmet in `app.ts`. La CSP ammette solo le tile di OpenStreetMap come immagini esterne; `Referrer-Policy: strict-origin-when-cross-origin` perché senza Referer le tile rispondono 403. Una risorsa esterna nuova va aggiunta alla CSP e provata in modalità produzione (in `npm run dev` la pagina la serve Vite, senza CSP).
+- **Variabili solo per casi particolari:** `SECURE_COOKIES=false` solo in `compose.yaml` (su http://localhost il cookie `Secure` non arriverebbe); `compose.override.yaml` (non committato) per il certificato di un antivirus, mai dentro l'immagine.
 - **Non ancora presenti:** verifica dell'email, recupero password (richiedono l'invio di email).
 - **Eventi:** dati demo in sei città italiane (Roma, Milano, Torino, Bologna, Napoli, Firenze), più quelli creati dagli organizzatori. L'importatore da Ticketmaster Discovery API per ora non si fa: lo spike ha mostrato una copertura scarsa fuori da Milano.

@@ -6,6 +6,13 @@ Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/); 
 
 ## [Non ancora rilasciato]
 
+### Funzionalità
+
+- **App installabile (PWA):** DiscoverEvent si può aggiungere alla schermata Home del telefono o installare dal
+  browser del computer, con icona propria e a schermo intero.
+- Senza connessione, al posto dell'errore del browser compare una pagina che invita a riprovare.
+- Icona del sito nella scheda del browser.
+
 ## [1.0.0] - 2026-10-31
 
 Prima versione pubblica, online su <https://discoverevent.onrender.com> in modalità demo.

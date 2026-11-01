@@ -6,10 +6,12 @@ Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/); 
 
 ## [Non ancora rilasciato]
 
+## [1.1.1] - 2026-11-01
+
 ### Correzioni
 
-- I segnaposto degli eventi sulla mappa sono di nuovo pieni e colorati per categoria, con bordo e ombra: prima
-  comparivano come anelli bianchi quasi trasparenti.
+- I segnaposto degli eventi sulla mappa sono pieni e colorati per categoria, con bordo e ombra: prima comparivano
+  come anelli bianchi quasi trasparenti.
 
 ## [1.1.0] - 2026-11-01
 
@@ -48,7 +50,7 @@ Prima versione pubblica, online su <https://discoverevent.onrender.com> in modal
   aggiornata solo pubblicando un tag di versione.
 - CI su GitHub Actions: tipi, lint, formattazione, test e build a ogni pull request.
 
-
-[Non ancora rilasciato]: https://github.com/nilde790/DiscoverEvents/compare/v1.1.0...HEAD
+[Non ancora rilasciato]: https://github.com/nilde790/DiscoverEvents/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/nilde790/DiscoverEvents/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/nilde790/DiscoverEvents/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/nilde790/DiscoverEvents/releases/tag/v1.0.0

@@ -1,7 +1,7 @@
 {
   "name": "@discoverevent/shared",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "description": "Tipi, regole di validazione e costanti usati sia dal frontend sia dal backend.",
   "exports": {

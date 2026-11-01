@@ -4,7 +4,10 @@ Le modifiche importanti di DiscoverEvent, una versione per sezione.
 Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/); i numeri di versione seguono il
 [Semantic Versioning](https://semver.org/lang/it/): `MAGGIORE.MINORE.CORREZIONE`.
 
+
 ## [Non ancora rilasciato]
+
+## [1.1.0] - 2026-11-01
 
 ### Funzionalità
 
@@ -41,5 +44,9 @@ Prima versione pubblica, online su <https://discoverevent.onrender.com> in modal
   aggiornata solo pubblicando un tag di versione.
 - CI su GitHub Actions: tipi, lint, formattazione, test e build a ogni pull request.
 
-[Non ancora rilasciato]: https://github.com/nilde790/DiscoverEvents/compare/v1.0.0...HEAD
+
+[Non ancora rilasciato]: https://github.com/nilde790/DiscoverEvents/compare/v1.1.0...HEAD
+
+[1.1.0]: https://github.com/nilde790/DiscoverEvents/compare/v1.1.0...HEAD
+
 [1.0.0]: https://github.com/nilde790/DiscoverEvents/releases/tag/v1.0.0

@@ -160,7 +160,7 @@ PR → CI verde → merge su main → staging → prove → PR di rilascio → t
    git tag -a v1.1.0 -m "DiscoverEvent 1.1.0"
    git push origin v1.1.0
    ```
-4. La CI rifà tutti i controlli; se passano, chiama il deploy hook di Render (segreto `RENDER_DEPLOY_HOOK` nell'ambiente `production` di GitHub, utilizzabile solo dai tag `v*`) e va online esattamente quel commit.
+4. La CI rifà tutti i controlli; se passano, chiama il deploy hook di Render (segreto `RENDER_DEPLOY_HOOK` nell'ambiente `production` di GitHub, utilizzabile solo dai tag `v*`) e va online esattamente quel commit. Poi crea la [release su GitHub](https://github.com/nilde790/DiscoverEvents/releases) con la sezione di quella versione del CHANGELOG (se la sezione manca, il job fallisce).
 
 Le versioni seguono il [Semantic Versioning](https://semver.org/lang/it/): `1.0.1` corregge, `1.1.0` aggiunge, `2.0.0` cambia qualcosa in modo non compatibile. Un tag pubblicato non si sposta: per correggere si rilascia una nuova versione.
 

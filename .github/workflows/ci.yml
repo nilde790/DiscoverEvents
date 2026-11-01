@@ -66,3 +66,32 @@ jobs:
           # L'indirizzo del deploy hook è un segreto: chi lo conosce può far partire un deploy.
           DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: curl --fail --silent --show-error -X POST "$DEPLOY_HOOK&ref=$GITHUB_SHA"
+
+  github-release:
+    name: Release su GitHub
+    # Dopo il deploy: la pagina Releases del repository mostra la versione con le sue novità.
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Creare una release richiede il permesso di scrittura sul repository, solo per questo job.
+    permissions:
+      contents: write
+
+    steps:
+      - name: Scarica il codice
+        uses: actions/checkout@v4
+
+      - name: Crea la release con la sezione del CHANGELOG
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          # Le righe tra "## [X.Y.Z]" e la sezione successiva (o i link in fondo al file).
+          awk -v v="$version" 'index($0, "## [" v "]") == 1 { found = 1; next }
+            found && (/^## \[/ || /^\[.+\]: /) { exit }
+            found { print }' CHANGELOG.md > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "::error::Nel CHANGELOG manca la sezione [$version]"
+            exit 1
+          fi
+          gh release create "$GITHUB_REF_NAME" --title "DiscoverEvent $version" --notes-file notes.md --verify-tag

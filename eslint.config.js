@@ -20,6 +20,12 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules,
   },
 
+  // Service worker: gira nel browser ma fuori dalla pagina, con globali propri (self, caches).
+  {
+    files: ['apps/web/public/sw.js'],
+    languageOptions: { globals: globals.serviceworker },
+  },
+
   // Backend e file di configurazione: codice che gira in Node.js.
   {
     files: ['apps/api/**/*.ts', '**/*.config.{js,ts}', 'apps/web/scripts/**/*.mjs'],

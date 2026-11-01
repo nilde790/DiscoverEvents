@@ -4,6 +4,8 @@
 
 DiscoverEvent è una web app per trovare eventi nella propria zona: concerti, mostre, sport, food, teatro e meetup tecnologici. I partecipanti esplorano gli eventi su una mappa o in un catalogo, li salvano tra i preferiti e si iscrivono. Gli organizzatori pubblicano i propri eventi, ne gestiscono i posti e vedono chi si è iscritto.
 
+**Prova la demo: <https://discoverevent.onrender.com>** — si entra con i pulsanti *Prova come…*, senza registrarsi. Il server gratuito si sospende quando nessuno lo usa: la prima apertura può richiedere circa un minuto.
+
 ![Mappa degli eventi vicini con la dashboard dell'evento selezionato](docs/screenshots/mappa.jpg)
 
 ## Funzionalità
@@ -49,7 +51,9 @@ Il limite di partecipanti è garantito dal server: anche con richieste simultane
 | Autenticazione | Sessioni con cookie (express-session), password con bcrypt (bcryptjs), limite ai tentativi (express-rate-limit) |
 | Database | SQLite (modulo `node:sqlite` integrato in Node.js) |
 | Validazione | Zod, con le stesse regole su client e server |
+| Sicurezza HTTP | helmet: Content Security Policy, HSTS, protezione dal clickjacking |
 | Qualità | `node:test` sulle API, ESLint, Prettier, CI con GitHub Actions |
+| Deploy | Docker, Render (staging e produzione), deploy di produzione sui tag di versione |
 | Struttura | Monorepo con npm workspaces |
 
 ## Avvio rapido
@@ -71,6 +75,8 @@ Al primo avvio il database viene creato e popolato con dati dimostrativi in sei 
 | `npm test` | Esegue i test delle API |
 | `npm run format` | Formatta il codice con Prettier |
 | `npm run build` | Crea la build di produzione del frontend |
+| `npm start` | Avvia il server di produzione (serve anche il sito se è impostata `STATIC_DIR`) |
+| `docker compose up --build` | Costruisce e avvia l'immagine Docker su http://localhost:8080 (vedi [Deploy e rilasci](#deploy-e-rilasci)) |
 | `npm run db:reset` | Cancella il database (viene ricreato al prossimo avvio) |
 
 ### Account dimostrativi
@@ -103,7 +109,7 @@ Titolare ed email della pagina *Privacy* non sono scritti nel codice: si imposta
 
 ### Configurazione
 
-Le impostazioni del server si leggono da variabili d'ambiente o dal file `apps/api/.env` (vedi [`apps/api/.env.example`](apps/api/.env.example)). In sviluppo funzionano i valori predefiniti; in produzione (`NODE_ENV=production`) è obbligatoria `SESSION_SECRET` e i cookie viaggiano solo su HTTPS.
+Le impostazioni del server si leggono da variabili d'ambiente o dal file `apps/api/.env` (vedi [`apps/api/.env.example`](apps/api/.env.example)). In sviluppo funzionano i valori predefiniti; in produzione (`NODE_ENV=production`) è obbligatoria `SESSION_SECRET` e i cookie viaggiano solo su HTTPS (`SECURE_COOKIES=false` solo per provare l'immagine su http://localhost).
 
 ### Creare il primo amministratore
 
@@ -121,10 +127,52 @@ Il comando usa lo stesso database del server (`DB_PATH`), non crea account e non
 ### Sicurezza
 
 - Password salvate solo come hash **bcrypt**, mai in chiaro.
-- Sessione in un cookie **`httpOnly`** (non leggibile dal JavaScript della pagina) e **`SameSite=Lax`** (non inviato dalle richieste di modifica di altri siti).
+- Sessione in un cookie **`httpOnly`** (non leggibile dal JavaScript della pagina), **`SameSite=Lax`** (non inviato dalle richieste di modifica di altri siti) e **`Secure`** in produzione (solo su HTTPS).
+- **Header di sicurezza** con helmet: la Content Security Policy permette script e immagini solo dal sito e dalle tile di OpenStreetMap; HSTS impone HTTPS; il sito non può essere incorniciato da altri.
 - Nuovo id di sessione a ogni accesso, per impedire il furto di sessioni preparate in anticipo.
 - **Massimo 10 tentativi** di accesso o registrazione ogni 15 minuti per indirizzo IP.
 - Stesso messaggio d'errore per email sconosciuta e password sbagliata, per non rivelare quali email sono registrate.
+
+## Deploy e rilasci
+
+Il sito gira su [Render](https://render.com) in un container Docker. I servizi sono descritti in [`render.yaml`](render.yaml), la pipeline in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+| Ambiente | Indirizzo | Si aggiorna |
+|---|---|---|
+| Sviluppo | http://localhost:5173 (`npm run dev`) | A ogni salvataggio |
+| Staging | <https://discoverevent-staging.onrender.com> | Da solo a ogni merge su `main`, se la CI è verde; escluso dai motori di ricerca (`NOINDEX`) |
+| Produzione | <https://discoverevent.onrender.com> | Solo quando si pubblica un tag di versione `vX.Y.Z` |
+
+```
+PR → CI verde → merge su main → staging → prove → PR di rilascio → tag vX.Y.Z → CI → produzione
+```
+
+**Pubblicare una versione**
+
+1. Ogni PR aggiunge le sue novità alla sezione *Non ancora rilasciato* di [`CHANGELOG.md`](CHANGELOG.md).
+2. Provate le novità sullo staging, una PR di rilascio aggiorna i numeri di versione e il changelog:
+   ```bash
+   npm version 1.1.0 --workspaces --include-workspace-root --no-git-tag-version
+   ```
+3. Dopo il merge, il tag si crea **su `main` aggiornato**:
+   ```bash
+   git switch main && git pull
+   git tag -a v1.1.0 -m "DiscoverEvent 1.1.0"
+   git push origin v1.1.0
+   ```
+4. La CI rifà tutti i controlli; se passano, chiama il deploy hook di Render (segreto `RENDER_DEPLOY_HOOK` nell'ambiente `production` di GitHub, utilizzabile solo dai tag `v*`) e va online esattamente quel commit.
+
+Le versioni seguono il [Semantic Versioning](https://semver.org/lang/it/): `1.0.1` corregge, `1.1.0` aggiunge, `2.0.0` cambia qualcosa in modo non compatibile. Un tag pubblicato non si sposta: per correggere si rilascia una nuova versione.
+
+**Provare l'immagine di produzione in locale**
+
+```bash
+docker compose up --build
+```
+
+Il sito è su http://localhost:8080. `SESSION_SECRET` si legge dal file `.env` nella radice del progetto (escluso da Git e da Docker). Le impostazioni valide solo su un PC, per esempio il certificato di un antivirus che intercetta l'HTTPS, vanno in `compose.override.yaml`, che non si committa.
+
+Su Render il disco gratuito non è permanente: a ogni deploy o riavvio il database riparte dai dati demo, cosa compatibile con la modalità demo. Con utenti reali servirebbe un disco persistente (`DB_PATH`) o un database gestito.
 
 ## Architettura
 
